@@ -36,6 +36,7 @@ export const sushiren = {
   awardBanner: null,
   ribbon: { lead: '최근 인기 급상승!', text: '2달 평점 4.7점 돌파' },
   waitingEnabled: false,
+  waiting: null,
   bookingEnabled: true,
   booking: {
     maxPartySize: 10,

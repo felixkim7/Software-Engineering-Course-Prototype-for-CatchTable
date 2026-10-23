@@ -20,6 +20,8 @@ that every separate chat was retrieved. The package is self-contained for develo
 1. Some restaurants already show weekday/time-slot waiting statistics. Expand coverage
    to all waiting-enabled restaurants, with a collecting-data state where necessary.
 2. Waiting postponement with a selectable range already exists. Preserve it as baseline.
+   2026-10-23: the user pointed to a velog post showing the real 웨이팅 순서 미루기 page: any later
+   place down to the last party, at most twice, not after being called (decisions.md).
 3. The waiting flaw is restaurant-detail visibility: after registration the page still
    offers registration and reveals the active ticket only after another click.
 4. Cancellation-seat allocation is sequential and exclusive, not a broadcast race.

@@ -6,7 +6,7 @@
 |---|---|
 | Customer | id, displayName |
 | Manager | id, restaurantId, displayName |
-| Restaurant | id, name, district, cuisine, description, rating, reviewCount, saveCount, photoCount, badges[{kind,label}], photos[], stations[{lines[], name, distanceM}], priceBand, hours {open, close}, weeklyHours?, tags[], ribbon?, coupon, aiSummary, awardBanner?, waitingEnabled, bookingEnabled, booking {maxPartySize, windowDays, times, soldOut [[dayOffset, time or null]], openSchedule?, deposit}, menu {categories[{name, range?, items[{name, price, description, image, badges}]}], notes[], boards[], updatedAt}, reviews {distribution[5..1], purposes[]}, photoFilters[], info {intro, award?, address, map, directions?, facilities[], guides[], phone, closedDays?, notices?, capacity?}, news[], broadcasts[] (fixtures in core/fixtures/) |
+| Restaurant | id, name, district, cuisine, description, rating, reviewCount, saveCount, photoCount, badges[{kind,label}], photos[], stations[{lines[], name, distanceM}], priceBand, hours {open, close}, weeklyHours?, tags[], ribbon?, coupon, aiSummary, awardBanner?, waitingEnabled, bookingEnabled, booking {maxPartySize, windowDays, times, soldOut [[dayOffset, time or null]], openSchedule?, deposit}, menu {categories[{name, range?, items[{name, price, description, image, badges}]}], notes[], boards[], updatedAt}, reviews {distribution[5..1], purposes[]}, photoFilters[], info {intro, award?, address, map, directions?, facilities[], guides[], phone, closedDays?, notices?, capacity?}, news[], broadcasts[], waiting {accepting, minutesPerTeam, remoteMinTeams, maxPartySize} or null (fixtures in core/fixtures/; `accepting` is changed by the manager) |
 | SavedRestaurant | customerId, restaurantId, savedAt |
 | CouponClaim | customerId, couponId, claimedAt |
 | RecentView | customerId, restaurantId, viewedAt (one per customer and restaurant, newest first) |
@@ -15,7 +15,7 @@
 | PriorityOffer | id, requestId, slotId, ownerId, status, issuedAt, expiresAt, paymentOperationId |
 | PaymentOperation | id, offerId, customerId, amountKRW, status, createdAt, resolvedAt, reservationId |
 | Reservation | id, customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status, sourceOfferId |
-| WaitingTicket | id, customerId, restaurantId, partySize, queueOrder, status, postponementCount, registeredAt |
+| WaitingTicket | id (`w-<restaurant>-<number>`), customerId (null for other parties), guest (fictional masked phone), restaurantId, ticketNumber, channel (app/onsite/manual), party {adults, infants}, partySize, queueOrder, status, postponementCount, callCount, registeredAt, calledAt, endedAt, endedBy |
 | WaitingStatistic | restaurantId, weekday, timeSlot, avgMinutes, avgTeams, sampleCount, periodStart, periodEnd, updatedAt |
 | LateCoordination | id, reservationId, version, expectedArrival, status, proposedTime, history[] |
 | Notification | id, recipientType, recipientId, entityType, entityId, kind, deliveryStatus, readAt, createdAt |
@@ -88,10 +88,12 @@ People and operational records are fictional; restaurants r1-r3 are real public 
 - c3: an older applicant with a mismatched party size, proving matching before FIFO.
 - m1 assigned r1; m2 assigned r2 for an ownership-negative check.
 - A released r1 slot for two people on reset day + 1 at 19:00.
-- Independent waiting tickets for r1 with enough parties to exercise 1/2-place postponement.
+- r1 queue at reset: 1 called + 6 waiting parties (plus seated/cancelled history); #6 is the app
+  ticket the waiting-active preset gives to c1 (3rd in line). r2: one party, so its
+  "2팀 이상부터 온라인 웨이팅 가능" rule applies until another party arrives.
 - A confirmed r1 reservation on reset day + 1 at 18:00 for late-arrival coordination.
 - Statistics fixture cells with both sufficient and insufficient samples.
 
-Scenario presets: clean-start, waiting-active, cancellation-ready, offer-active,
+Scenario presets (clean-start and waiting-active implemented in Phase 2): clean-start, waiting-active, cancellation-ready, offer-active,
 payment-unknown, late-ready. Build presets only when their phase is implemented.
 A preset creates a coherent snapshot, not a visual-only screen override.

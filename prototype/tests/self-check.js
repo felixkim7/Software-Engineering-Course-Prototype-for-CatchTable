@@ -8,6 +8,11 @@ import { seoulDateKey, addDays, weekdayOf, seoulHour, formatKRW, escapeHtml } fr
 import { hourSlots, waitingStatistics } from '../assets/js/services/statistics.js';
 import { bookingDates, bookingTimes } from '../assets/js/services/booking.js';
 import { isSaved, toggleSaved, savedRestaurantList, hasCoupon, claimCoupon, recordView, recentRestaurants } from '../assets/js/services/customer.js';
+import {
+  activeQueue, activeTicketFor, addWalkIn, callTicket, cancelWaiting, findTicket, isActive, managerCancelTicket,
+  postponeChoices, postponeWaiting, queuePosition, registerWaiting, registrationStatus, seatTicket, setAccepting,
+} from '../assets/js/services/waiting.js';
+import { applyPreset } from '../assets/js/services/presets.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const results = [];
@@ -50,7 +55,7 @@ try {
     assert(!r.r3.waitingEnabled && r.r3.bookingEnabled && r.r3.policies.depositKRW === 0, 'r3 fixture');
     assert(['c1', 'c2', 'c3'].every((id) => byId(seed.customers)[id]), 'customers');
     assert(m.m1.restaurantId === 'r1' && m.m2.restaurantId === 'r2', 'manager assignment');
-    const unseeded = DOMAIN_COLLECTIONS.filter((name) => name !== 'waitingStatistics');
+    const unseeded = DOMAIN_COLLECTIONS.filter((name) => !['waitingStatistics', 'waitingTickets'].includes(name));
     assert(unseeded.every((name) => seed[name].length === 0), 'later-phase collections not empty');
   });
 
@@ -226,6 +231,76 @@ try {
     assert(recentRestaurants(getState()).length === 0, 'leaked to another customer');
     setPreference('activeCustomerId', 'c1');
     assert(recordView('nope').reason === 'NOT_FOUND', 'unknown restaurant accepted');
+  });
+
+  // ---- On-site waiting (Phase 2) ----
+  const r1 = () => getState().restaurants.find((r) => r.id === 'r1');
+  const ticket = (id) => findTicket(getState(), id);
+
+  await check('seed queue: positions derive from queueOrder; called party first', () => {
+    resetDemo();
+    const queue = activeQueue(getState(), 'r1');
+    assert(queue.length === 7 && queue[0].status === 'CALLED', `${queue.length} ${queue[0].status}`);
+    assert(queuePosition(getState(), ticket('w-r1-6')) === 3 && queuePosition(getState(), ticket('w-r1-1')) === null, 'positions');
+  });
+
+  await check('registration is idempotent per customer and restaurant; party is validated', () => {
+    resetDemo();
+    assert(registerWaiting('r1', { adults: 0, infants: 1 }).reason === 'INVALID_PARTY', 'zero adults');
+    assert(registerWaiting('r1', { adults: 6, infants: 1 }).reason === 'INVALID_PARTY', 'over max');
+    const first = registerWaiting('r1', { adults: 2, infants: 0 });
+    const second = registerWaiting('r1', { adults: 3, infants: 0 });
+    const mine = getState().waitingTickets.filter((t) => t.customerId === 'c1' && isActive(t));
+    assert(first.ok && second.reason === 'ALREADY_WAITING' && second.ticketId === first.ticketId && mine.length === 1, JSON.stringify(second));
+    assert(queuePosition(getState(), ticket(first.ticketId)) === 8 && ticket(first.ticketId).ticketNumber === 11, 'appended at the end');
+  });
+
+  await check('registration rules: r2 needs 2 waiting parties; closing keeps live tickets', () => {
+    resetDemo();
+    assert(registerWaiting('r2', { adults: 2, infants: 0 }).reason === 'WAITING_MIN_TEAMS', 'r2 min teams');
+    assert(addWalkIn('r2').ok && registerWaiting('r2', { adults: 2, infants: 0 }).ok, 'r2 opens at 2 parties');
+    const own = registerWaiting('r1', { adults: 2, infants: 0 });
+    assert(setAccepting(false).ok && !r1().waiting.accepting, 'close r1 as m1');
+    assert(activeTicketFor(getState(), 'r1')?.id === own.ticketId, 'live ticket lost when closing');
+    setPreference('activeCustomerId', 'c2');
+    assert(registerWaiting('r1', { adults: 2, infants: 0 }).reason === 'WAITING_CLOSED', 'closed still accepts');
+    setPreference('activeCustomerId', 'c1');
+  });
+
+  await check('postpone: any later place, live-checked, at most 2 times, not after a call', () => {
+    applyPreset('waitingActive');
+    const id = 'w-r1-6';
+    const choices = postponeChoices(getState(), ticket(id), r1());
+    assert(choices.position === 3 && choices.positions.map((p) => p.position).join() === '4,5,6,7' && choices.positions[0].extraMinutes === 15, JSON.stringify(choices));
+    assert(postponeWaiting(id, 2, 5).reason === 'QUEUE_CHANGED', 'stale expected position accepted');
+    assert(postponeWaiting(id, 3, 9).reason === 'QUEUE_CHANGED', 'out-of-range target accepted');
+    assert(postponeWaiting(id, 3, 5).ok && queuePosition(getState(), ticket(id)) === 5, 'move to 5th');
+    assert(activeQueue(getState(), 'r1')[4].id === id, 'manager queue disagrees');
+    assert(postponeWaiting(id, 5, 6).ok && postponeChoices(getState(), ticket(id), r1()).reason === 'POSTPONE_LIMIT', 'limit');
+    assert(postponeWaiting(id, 6, 7).reason === 'POSTPONE_LIMIT', 'third postponement accepted');
+    applyPreset('waitingActive');
+    assert(callTicket(id).ok && postponeWaiting(id, 3, 4).reason === 'POSTPONE_CALLED', 'postponed after call');
+  });
+
+  await check('manager: call limit, seat/cancel are terminal, other restaurant forbidden', () => {
+    applyPreset('waitingActive');
+    const id = 'w-r1-6';
+    assert(callTicket(id).ok && callTicket(id).ok && callTicket(id).reason === 'CALL_LIMIT', 'call limit');
+    setPreference('activeManagerId', 'm2');
+    assert(seatTicket(id).reason === 'FORBIDDEN' && setAccepting(false).ok && r1().waiting.accepting, 'm2 changed r1');
+    setPreference('activeManagerId', 'm1');
+    assert(seatTicket(id).ok && seatTicket(id).reason === 'TICKET_ENDED', 'seat twice');
+    assert(activeTicketFor(getState(), 'r1') === null && ticket(id).status === 'SEATED', 'still active after seat');
+    assert(managerCancelTicket('w-r1-7').ok && callTicket('w-r1-7').reason === 'TICKET_ENDED', 'call after cancel');
+  });
+
+  await check('customer cancel: owner only, once; other customers never see the ticket', () => {
+    applyPreset('waitingActive');
+    setPreference('activeCustomerId', 'c2');
+    assert(activeTicketFor(getState(), 'r1') === null && cancelWaiting('w-r1-6').reason === 'TICKET_NOT_OWNED', 'c2 sees or cancels c1 ticket');
+    setPreference('activeCustomerId', 'c1');
+    assert(cancelWaiting('w-r1-6').ok && cancelWaiting('w-r1-6').reason === 'TICKET_ENDED', 'cancel twice');
+    assert(activeTicketFor(getState(), 'r1') === null && registrationStatus(getState(), r1()).open, 'register again after cancel');
   });
 } finally {
   if (backup === null) localStorage.removeItem(STORAGE_KEY);

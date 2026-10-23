@@ -62,6 +62,44 @@ function waitingStatistics(baseDate) {
       })));
 }
 
+// MOCK on-site queues at reset time: other parties (walk-ins and other app users) with fictional
+// masked phone numbers. [number, channel, adults, infants, status, registered min ago, ended min ago]
+// r1: one called, six waiting, plus seated/cancelled history for the manager tabs. #6 is the
+// app ticket the waiting-active preset assigns to c1 (3rd in line, as capture 183416).
+// r2: a single party, so vivo's "2팀 이상부터 온라인 웨이팅 가능" rule applies at first.
+const QUEUE_FIXTURES = {
+  r1: [
+    [1, 'onsite', 2, 0, 'SEATED', 70, 30], [2, 'onsite', 3, 0, 'CANCELLED', 65, 40], [3, 'manual', 4, 0, 'SEATED', 60, 20],
+    [4, 'onsite', 2, 0, 'CALLED', 50, null], [5, 'onsite', 2, 1, 'WAITING', 42], [6, 'app', 2, 0, 'WAITING', 38],
+    [7, 'onsite', 2, 0, 'WAITING', 28], [8, 'manual', 4, 0, 'WAITING', 20], [9, 'onsite', 2, 0, 'WAITING', 12], [10, 'app', 3, 0, 'WAITING', 5],
+  ],
+  r2: [[1, 'onsite', 2, 0, 'WAITING', 10]],
+};
+const MINUTE_MS = 60 * 1000;
+
+function waitingTickets(resetAtMs) {
+  const at = (minutesAgo) => new Date(resetAtMs - minutesAgo * MINUTE_MS).toISOString();
+  return Object.entries(QUEUE_FIXTURES).flatMap(([restaurantId, rows]) =>
+    rows.map(([number, channel, adults, infants, status, registeredAgo, endedAgo = null]) => ({
+      id: `w-${restaurantId}-${number}`,
+      restaurantId,
+      ticketNumber: number,
+      customerId: null,
+      guest: `010-****-${String(4000 + number * 137).slice(-4)}`,  // fictional
+      channel,
+      party: { adults, infants },
+      partySize: adults + infants,
+      queueOrder: number,
+      status,
+      postponementCount: 0,
+      callCount: status === 'CALLED' ? 1 : 0,
+      registeredAt: at(registeredAgo),
+      calledAt: status === 'CALLED' ? at(3) : null,
+      endedAt: endedAgo === null ? null : at(endedAgo),
+      endedBy: endedAgo === null ? null : status === 'SEATED' ? 'manager' : 'customer',
+    })));
+}
+
 export function createSeed(resetAtMs, scenarioEpoch = 1) {
   const baseDate = seoulDateKey(resetAtMs);
   return {
@@ -81,5 +119,6 @@ export function createSeed(resetAtMs, scenarioEpoch = 1) {
     restaurants: restaurants(),
     ...Object.fromEntries(DOMAIN_COLLECTIONS.map((name) => [name, []])),
     waitingStatistics: waitingStatistics(baseDate),
+    waitingTickets: waitingTickets(resetAtMs),
   };
 }

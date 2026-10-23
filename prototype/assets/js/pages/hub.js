@@ -4,6 +4,8 @@ import { getState, getStorageStatus, subscribe, resetDemo, setPreference } from 
 import { now, advance } from '../core/clock.js';
 import { formatDateKey, formatDateTime } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
+import { applyPreset, PRESET_KEYS } from '../services/presets.js';
+import { addWalkIn } from '../services/waiting.js';
 import { h } from '../ui/dom.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
@@ -104,22 +106,43 @@ function buildIdentityPanel(state) {
     h('div', { class: 'hub-field' }, h('label', { for: 'manager-select' }, T.managerLabel), refs.managerSelect));
 }
 
+async function requestPreset(key) {
+  const confirmed = await confirmDialog({
+    title: T.resetDialogTitle, message: T.resetDialogMessage, confirmLabel: T.applyPreset, tone: 'danger',
+  });
+  if (!confirmed) return;
+  const result = applyPreset(key);
+  showToast(result.ok ? T.presetApplied(T.presets[key]) : STRINGS.errors[result.reason]);
+}
+
 function buildPresetsPanel() {
   return panel(T.presetsHeading,
     h('p', { class: 'hub-hint' }, T.presetsHint),
-    h('ul', { class: 'hub-list' }, T.presets.map((name) => h('li', {},
-      h('span', {}, name),
-      h('span', { class: 'hub-hint' }, T.unavailable)))));
+    h('ul', { class: 'hub-list' },
+      PRESET_KEYS.map((key) => h('li', {},
+        h('span', {}, T.presets[key]),
+        button(T.applyPreset, () => requestPreset(key), 'button--small'))),
+      T.laterPresets.map((name) => h('li', {},
+        h('span', {}, name),
+        h('span', { class: 'hub-hint' }, T.unavailable)))));
+}
+
+function buildWalkInPanel(state) {
+  return panel(T.walkInHeading,
+    h('p', { class: 'hub-hint' }, T.walkInHint),
+    h('div', { class: 'button-row' }, state.restaurants.filter((r) => r.waitingEnabled).map((restaurant) => button(T.addWalkIn(restaurant), () => {
+      const result = addWalkIn(restaurant.id);
+      showToast(result.ok ? T.walkInAdded(restaurant) : STRINGS.errors[result.reason]);
+    }))));
 }
 
 function buildScreensPanel(state) {
-  const unavailable = (label) => h('li', {}, h('span', {}, label), h('span', { class: 'hub-hint' }, T.unavailable));
   const link = (label, path, params) => h('li', {}, h('a', { href: pageUrl(path, params) }, label));
   return panel(T.screensHeading,
     h('ul', { class: 'hub-list' },
       link(T.customerApp, 'customer/discovery.html'),
       state.restaurants.map((restaurant) => link(T.restaurantLink(restaurant), 'customer/restaurant.html', { restaurantId: restaurant.id })),
-      unavailable(T.managerApp),
+      link(T.managerApp, 'manager/waiting.html'),
       link(T.uiSample, 'customer/ui-sample.html'),
       link(T.selfCheck, 'tests/index.html')));
 }
@@ -151,7 +174,8 @@ document.getElementById('app').replaceChildren(
     buildStatePanel(),
     buildIdentityPanel(initialState),
     buildPresetsPanel(),
-    buildScreensPanel(initialState)),
+    buildScreensPanel(initialState),
+    buildWalkInPanel(initialState)),
 );
 refresh();
 subscribe(refresh);

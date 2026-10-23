@@ -1,6 +1,7 @@
 // C02 Restaurant detail. Layout follows the app captures; tabs switch panels as in the app
-// (171138: the 메뉴 tab shows only menu content). Booking payment and waiting registration are
-// not built yet, so their final step explains that instead of faking success.
+// (171138: the 메뉴 tab shows only menu content). Booking payment is not built, so its final step
+// explains that. To-Be waiting (FR-07/08): a customer holding a live ticket sees it above the
+// bottom bar on load, and the CTA becomes 내 웨이팅 보기 instead of offering a second registration.
 import { STRINGS } from '../core/strings.js';
 import { getState, subscribe } from '../core/store.js';
 import { now } from '../core/clock.js';
@@ -8,12 +9,14 @@ import { formatCount, formatCapped, seoulDateKey, weekdayOf, seoulHour } from '.
 import { pageUrl, queryParam } from '../core/nav.js';
 import { waitingStatistics } from '../services/statistics.js';
 import { isSaved, toggleSaved, hasCoupon, claimCoupon, recordView } from '../services/customer.js';
+import { activeTicketFor, registrationStatus } from '../services/waiting.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { pageHeader } from '../ui/header.js';
 import { showToast, copyWithToast } from '../ui/toast.js';
 import { waitingStatsSection } from '../ui/waiting-stats.js';
 import { bookingPanel } from '../ui/booking-panel.js';
+import { queueBlock, ticketStrip } from '../ui/waiting-live.js';
 import { photoCarousel, summaryBlock, couponCard, aiSummaryCard } from '../ui/detail-summary.js';
 import { homePreviews, menuPanel, photosPanel, reviewsPanel, infoPanel, newsPanel, broadcastsPanel } from '../ui/detail-panels.js';
 
@@ -25,12 +28,12 @@ const iconLink = (name, label, href) => h('a', { class: 'icon-button', href, 'ar
 const iconButton = (name, label, onclick, attributes = {}) =>
   h('button', { class: 'icon-button', type: 'button', 'aria-label': label, onclick, ...attributes }, icon(name));
 
-function modePicker(modes, onSelect) {
+function modePicker(modes, initialKey, onSelect) {
   return h('div', { class: 'mode-picker' },
     h('fieldset', { class: 'segmented' },
       h('legend', { class: 'visually-hidden' }, R.modeLegend),
-      modes.map((mode, index) => h('label', { class: 'segmented__option' },
-        h('input', { class: 'visually-hidden', type: 'radio', name: 'mode', value: mode.key, checked: index === 0, onchange: () => onSelect(mode.key) }),
+      modes.map((mode) => h('label', { class: 'segmented__option' },
+        h('input', { class: 'visually-hidden', type: 'radio', name: 'mode', value: mode.key, checked: mode.key === initialKey, onchange: () => onSelect(mode.key) }),
         R.capability[mode.key]))));
 }
 
@@ -78,21 +81,47 @@ function renderDetail(state, restaurant) {
     heading: restaurant.waitingEnabled ? null : R.bookingHeading,
     onConfirm: () => showToast(R.bookingUnavailable),
   });
+  const W = STRINGS.waiting;
+  const queueSlot = h('div', { class: 'queue-slot' });
+  const stripSlot = h('div', { class: 'ticket-strip-slot' });
   const modes = [
-    booking && { key: 'booking', cta: R.ctaBooking, element: h('div', { class: 'mode-panel' }, h('div', { class: 'detail-block' }, booking.element), booking.schedule) },
-    restaurant.waitingEnabled && { key: 'waiting', cta: R.ctaWaiting, element: h('div', { class: 'mode-panel' }, waitingStatsSection(waitingStatistics(state, restaurant), today)) },
+    booking && { key: 'booking', element: h('div', { class: 'mode-panel' }, h('div', { class: 'detail-block' }, booking.element), booking.schedule) },
+    restaurant.waitingEnabled && { key: 'waiting', element: h('div', { class: 'mode-panel' }, queueSlot, waitingStatsSection(waitingStatistics(state, restaurant), today)) },
   ].filter(Boolean);
+  const myTicket = () => (restaurant.waitingEnabled ? activeTicketFor(getState(), restaurant.id) : null);
   function show(nextMode) {
     mode = nextMode;
-    modes.forEach((m) => {
-      m.element.hidden = m.key !== mode;
-      if (m.key === mode) cta.textContent = m.cta;
-    });
+    modes.forEach((m) => { m.element.hidden = m.key !== mode; });
+    refreshCta();
+  }
+  // Waiting CTA: View My Waiting for a live ticket, otherwise registration or why it is closed
+  function waitingAction() {
+    const ticket = myTicket();
+    if (ticket) return { label: W.ctaView, href: pageUrl('customer/waiting.html', { ticketId: ticket.id }) };
+    const status = registrationStatus(getState(), restaurant);
+    if (status.open) return { label: W.ctaRegister, href: pageUrl('customer/waiting-register.html', { restaurantId: restaurant.id }) };
+    return { label: status.reason === 'WAITING_MIN_TEAMS' ? W.ctaMinTeams(restaurant.waiting.remoteMinTeams) : W.ctaClosed, reason: status.reason };
+  }
+  function refreshCta() {
+    const action = mode === 'waiting' ? waitingAction() : { label: R.ctaBooking };
+    cta.textContent = action.label;
+    cta.setAttribute('aria-disabled', String(Boolean(action.reason)));
   }
   function onCta() {
-    if (mode === 'booking') (booking.getSelection() ? booking.openConfirm() : booking.openPicker());
-    else showToast(R.waitingUnavailable);
+    if (mode === 'booking') { (booking.getSelection() ? booking.openConfirm() : booking.openPicker()); return; }
+    const action = waitingAction();
+    if (action.href) window.location.href = action.href;
+    else showToast(STRINGS.errors[action.reason]);
   }
+  function refreshWaiting() {
+    if (!restaurant.waitingEnabled) return;
+    const latest = getState();
+    queueSlot.replaceChildren(queueBlock(latest, restaurant, () => { refreshWaiting(); showToast(W.refreshed); }));
+    stripSlot.replaceChildren(...[ticketStrip(latest, myTicket())].filter(Boolean));
+    refreshCta();
+  }
+
+  const initialMode = myTicket() ? 'waiting' : modes[0]?.key;
 
   // Tabs and panels
   const tabDefs = [
@@ -107,7 +136,7 @@ function renderDetail(state, restaurant) {
   const builders = {
     home: () => [
       restaurant.coupon && h('div', { class: 'detail-block detail-block--tight' }, couponSlot),
-      modes.length > 1 && modePicker(modes, show),
+      modes.length > 1 && modePicker(modes, initialMode, show),
       modes.map((m) => m.element),
       restaurant.aiSummary && aiSummaryCard(restaurant.aiSummary),
       homePreviews(restaurant, (key, section) => selectTab(key, section), weekdayLabel),
@@ -170,18 +199,20 @@ function renderDetail(state, restaurant) {
       tablist,
       Object.values(panels)),
     h('div', { class: 'detail-footer' },
+      stripSlot,
       restaurant.ribbon && h('p', { class: 'detail-ribbon' }, h('strong', {}, restaurant.ribbon.lead), ` ${restaurant.ribbon.text}`),
       h('div', { class: 'bottom-bar detail-bar' },
         barSave,
         h('button', { class: 'bar-action', type: 'button', onclick: () => showToast(R.phoneUnavailable) }, icon('phone'), h('span', { class: 'bar-action__label' }, R.phone)),
         cta)));
 
-  show(modes[0]?.key);
+  show(initialMode);
   selectTab('home');
   window.scrollTo({ top: 0 });
   refreshSaved();
   refreshCoupon();
-  subscribe(() => { refreshSaved(); refreshCoupon(); });
+  refreshWaiting();
+  subscribe(() => { refreshSaved(); refreshCoupon(); refreshWaiting(); });
 
   const name = app.querySelector('.detail-summary__name');
   const onScroll = () => header.classList.toggle('is-scrolled', name.getBoundingClientRect().bottom < header.getBoundingClientRect().bottom);

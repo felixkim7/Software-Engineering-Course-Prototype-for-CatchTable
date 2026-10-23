@@ -1,19 +1,101 @@
 # Development Progress
 
-Current phase: Phase 1 COMPLETE plus two requested visual-fidelity passes (2026-10-23).
-Next authorized candidate: Phase 2, which starts only on an explicit user request.
+Current phase: Phase 2 COMPLETE (2026-10-23), after Phase 1 and two visual-fidelity passes.
+Next authorized candidate: Phase 3, which starts only on an explicit user request.
 
 | Phase | Status | Verification evidence |
 |---|---|---|
 | 0 Foundation | Complete | 38/38 headless Edge checks, 12/12 self-check page, 2 extra store checks (2026-10-23); 38/38 regression rerun after Phase 1 |
 | 1 Discovery and statistics | Complete | 40/40 headless Edge checks, 17/17 self-check page, accessible-name and contrast checks (2026-10-23); after the 49-capture pass: 52/52 acceptance checks, 20/20 self-check page |
-| 2 Waiting | Not started | None |
+| 2 Waiting | Complete | 22/22 Phase 2 acceptance (W01-W08), 26/26 self-check page, 52/52 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 3 Cancellation queue | Not started | None |
 | 4 Priority booking | Not started | None |
 | 5 Late arrival | Not started | None |
 | 6 Integration | Not started | None |
 
-## Current session (2026-10-23, 49-capture fidelity pass before Phase 2)
+## Current session (2026-10-23, Phase 2: waiting registration, visible state, management)
+
+- Request: use the velog post the user supplied (웨이팅 미루기 lets you choose how many teams back) and
+  web screenshots for screens not captured, then continue with Phase 2.
+- References used:
+  - the user's 10-16 captures 183123-183450;
+  - velog postpone, cancel, KakaoTalk and duplicate screenshots;
+  - CatchTable's store dashboard help screenshots (docs.channel.io).
+  All are listed in reference-screens/README.md. Online images stay outside the repo.
+- Decision changed at the user's direction: the postponement rule now follows the real app.
+  - The customer picks any later place down to the last party.
+  - At most 2 postponements, and none after being called.
+  - Recorded in decisions.md and source-notes.md #2.
+
+**Files**
+- New:
+  - `services/waiting.js` (selectors and commands);
+  - `services/presets.js`;
+  - `pages/waiting-register.js` + `customer/waiting-register.html` (C13);
+  - `pages/waiting.js` + `customer/waiting.html` (C03);
+  - `ui/postpone-view.js`, `ui/waiting-live.js`;
+  - `pages/manager-waiting.js` + `manager/waiting.html` (M02);
+  - `css/waiting.css`.
+- Changed:
+  - config (schema 5, postpone/call limits);
+  - fixtures (`waiting` settings);
+  - seed-data (r1/r2 queues);
+  - strings (waiting, manager, errors, hub);
+  - format (ticket timestamps);
+  - modal (optional message, multi-line title);
+  - icons (alert);
+  - `ui/dom.js`: built inputs get autocomplete="off". This fixes a real back-navigation bug where Chrome restored a stale radio after render.
+  - restaurant.js: ticket strip, queue card, CTA rules, waiting mode preselected;
+  - my-dining.js (ticket cards);
+  - hub.js (presets, walk-in tool, manager link);
+  - desktop.css (dashboard);
+  - tests/self-check.js (6 waiting checks).
+
+**Behaviour** (all against one store, so customer and manager tabs agree)
+- Registration rejects a second live ticket (ALREADY_WAITING → open the ticket).
+  - The party must be 1+ adults, within the restaurant maximum.
+  - 접수마감 and r2's "2팀 이상부터 온라인 웨이팅 가능" block new registrations but never hide a live ticket.
+- Position is derived from queueOrder. Postpone validates:
+  - the place the customer saw (QUEUE_CHANGED otherwise);
+  - the target range;
+  - the limit;
+  - that the party is not CALLED.
+- Manager commands act only on the active manager's restaurant (FORBIDDEN otherwise).
+  - 호출 at most 2 times.
+  - 착석 and 취소 are terminal; repeating them gives TICKET_ENDED.
+- Estimates are MOCK (position × minutes per team), always "약 N분" with a may-differ note.
+
+**Evidence** (headless Edge via playwright-core in the session scratchpad, server `python -m http.server 5577`)
+- Phase 2 acceptance 22/22:
+  - register flow with bounded steppers;
+  - double-click registers once;
+  - the strip and 내 웨이팅 보기 appear on revisit and reload, before any click;
+  - View My Waiting opens the original ticket, and the register URL redirects to it;
+  - W03 isolation (other customer, other restaurant, ticket URL, 마이다이닝);
+  - W04 postpone to 5th with the manager list agreeing;
+  - W05 limit and after-call refusals;
+  - W07 the call reaches the open customer tab through the storage event, and seat completes the ticket;
+  - W08 접수마감 keeps the holder's CTA;
+  - W06 cancel with no stale banner;
+  - the r2 rule plus the hub walk-in;
+  - m2 sees only vivo pizza;
+  - presets;
+  - no overflow at 1024px (manager) or 360px (waiting pages);
+  - no console errors.
+- Self-check 26/26. Fidelity regression 52/52: the waiting CTA check was updated because it now opens registration. Phase 0 regression 38/38: the determinism check now compares ticket times relative to the reset instant.
+- Accessibility tree: no unnamed controls on register, ticket, postpone, detail, my-dining or manager.
+- Contrast computed for every new pair: dashboard buttons 4.32-4.99:1 with 20px bold labels; tab and number text pass as large text.
+- Screenshots were compared with the captures and dashboard references (see visual-spec.md).
+
+**Unverified**
+- Real devices and real screen readers.
+- Two writer tabs at once: the supported model is one active writer (architecture.md). The test drives the manager and customer tabs alternately.
+
+**Open items**
+- Notifications (KakaoTalk-style) are not modeled. The ticket page and detail strip are the authoritative state; the inbox arrives in Phases 3-5.
+- 되돌리기 (undo), the dashboard's manual registration, and the cross-restaurant limit of 3 are not built. 웨이팅 등록 explains that.
+
+## 49-capture fidelity pass record (2026-10-23)
 
 - Request: "i put the new 49 requested screenshots. some are missing like 웨이팅 미루기 and etc.
   search for those screen online and use them as reference. use them before proceeding to phase 2".
@@ -398,3 +480,8 @@ Append a short entry at the end of each session. Do not delete prior findings.
   - 52/52 acceptance, 38/38 Phase 0, 20/20 self-check.
   - Nothing committed.
   - Suggested commit: `phase-1: apply 49 app captures (tabbed detail, calendar sheet, statistics chart, search, saved, my-dining)`.
+- 2026-10-23, Phase 2 (user request after the velog reference):
+  - Waiting registration, the To-Be ticket strip and View My Waiting CTA, the ticket page with cancel and 웨이팅 순서 미루기, my-dining tickets, the manager dashboard, presets.
+  - 22/22 Phase 2, 26/26 self-check, 52/52 fidelity, 38/38 Phase 0.
+  - Nothing committed.
+  - Suggested commit: `phase-2: waiting registration, visible ticket on detail, postpone/cancel, manager queue`.

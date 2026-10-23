@@ -60,3 +60,54 @@ body.desktop { background: var(--color-surface-muted); accent-color: var(--color
 .hub-list li:last-child { border-bottom: 0; }
 .hub-list a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 .hub-hint { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+
+/* M02 manager waiting dashboard, after CatchTable's store dashboard help screenshots.
+   Action labels are 20px bold (large text), so white on each fill needs 3:1; all are >= 4.3:1. */
+.mgr { max-width: 1320px; margin: 0 auto; padding: var(--space-5) var(--space-6) var(--space-8); }
+.mgr-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.mgr-header__title { display: flex; align-items: center; gap: var(--space-3); }
+.mgr-header__title h1 { font-size: var(--font-section); font-weight: 700; }
+.mgr-header__title p { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.mgr-header__hub { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.mgr-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-5); }
+.mgr-accepting { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 56px; padding: 0 var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg); color: var(--color-text); font-size: var(--font-header); font-weight: 700; cursor: pointer; }
+.mgr-accepting__dot { width: 12px; height: 12px; border-radius: 50%; background: #1E9E5A; }
+.mgr-accepting.is-closed { color: var(--color-text-secondary); }
+.mgr-accepting.is-closed .mgr-accepting__dot { background: var(--color-text-disabled); }
+.mgr-stat { display: flex; align-items: center; gap: var(--space-3); min-height: 56px; margin-left: auto; padding: 0 var(--space-5); border-radius: var(--radius-lg); background: #EEEFF2; color: var(--color-text-secondary); font-size: var(--font-button); }
+.mgr-stat + .mgr-stat { margin-left: 0; }
+.mgr-stat strong { color: var(--color-text); font-size: var(--font-header); }
+.mgr-register { min-height: 56px; padding: 0 var(--space-5); border: 1px solid var(--color-brand); border-radius: var(--radius-lg); background: var(--color-bg); color: var(--color-primary-text); font-size: var(--font-button); font-weight: 700; cursor: pointer; }
+.mgr-tabs { display: flex; gap: var(--space-6); margin-top: var(--space-6); border-bottom: 1px solid var(--color-border); }
+.mgr-tab { min-height: 52px; padding: 0 var(--space-2); border: 0; border-bottom: 3px solid transparent; background: none; color: var(--color-text-tertiary); font-size: var(--font-section); font-weight: 700; cursor: pointer; }
+.mgr-tab[aria-pressed="true"] { border-bottom-color: var(--color-ink); color: var(--color-text); }
+.mgr-table { width: 100%; margin-top: var(--space-3); border-collapse: separate; border-spacing: 0 var(--space-3); table-layout: fixed; }
+.mgr-table th { padding: var(--space-2); color: var(--color-text-secondary); font-size: var(--font-body); font-weight: 600; text-align: center; }
+.mgr-table th:nth-child(1) { width: 6%; }
+.mgr-table th:nth-child(2) { width: 11%; }
+.mgr-table th:nth-child(3) { width: 14%; }
+.mgr-table th:nth-child(4) { width: 17%; }
+.mgr-table th:nth-child(5) { width: 15%; }
+.mgr-row td { padding: var(--space-4) var(--space-2); background: var(--color-bg); text-align: center; vertical-align: middle; }
+.mgr-row td:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+.mgr-row td:last-child { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+.mgr-row.is-called td { background: #FFF7F3; }
+.mgr-row td > strong, .mgr-row td > span { display: block; }
+.mgr-row__order { font-size: var(--font-title); font-weight: 600; }
+.mgr-row__number strong { color: #E8572F; font-size: 30px; font-weight: 800; line-height: 1.2; }  /* large text, 3.6:1 */
+.mgr-row__number span { color: var(--color-primary-text); font-size: var(--font-body); }
+.mgr-row__party strong { font-size: var(--font-title); font-weight: 700; }
+.mgr-row__party span, .mgr-row__status > span:last-child { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.mgr-row__status strong { font-size: var(--font-section); font-weight: 700; }
+.mgr-flag { font-size: var(--font-body-sm); font-weight: 600; }
+.mgr-badge { display: inline-block !important; margin-bottom: var(--space-1); padding: 2px var(--space-3); border-radius: var(--radius-pill); background: var(--color-brand-soft); color: var(--color-primary-text); font-size: var(--font-body-sm); font-weight: 600; }
+.mgr-row__customer { font-size: var(--font-body); font-weight: 600; overflow-wrap: anywhere; }
+.mgr-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.mgr-action { min-height: 64px; border: 0; border-radius: var(--radius-lg); color: #FFFFFF; font-size: 20px; font-weight: 700; cursor: pointer; }
+.mgr-action--call { background: #00897B; }
+.mgr-action--seat { background: #5C63D6; }
+.mgr-action--cancel { background: #D63A52; }
+.mgr-action:disabled { background: var(--color-surface-disabled); color: var(--color-text-disabled); cursor: not-allowed; }
+.mgr-action:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
+.mgr-ended { color: var(--color-text-secondary); font-size: var(--font-body); }
+.mgr-empty { margin-top: var(--space-5); padding: var(--space-8); border-radius: var(--radius-lg); background: var(--color-bg); color: var(--color-text-secondary); text-align: center; }

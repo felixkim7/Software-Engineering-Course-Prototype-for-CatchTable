@@ -85,11 +85,11 @@ kept outside the repository (third-party copyright); nothing from them is shippe
 | a-ha.io question 424172ee0914ce708dee90edb5741ccd | User answer: postponement is possible about twice and not after being called; store-dependent | Postponement rule |
 | designcompass.org, 2023-10-24 CatchTable design articles | Brand and UI overview | General visual language |
 
-**웨이팅 미루기 finding (needs a decision before Phase 2).** These sources describe postponement
-as "move to the back of the current queue, about 2 times at most, not after being called".
-`docs/decisions.md` and `docs/source-notes.md` record "move behind 1 or 2 additional eligible
-waiting parties (selectable range)". Neither the captures nor the sources show the postpone
-sheet itself. The business rule was not changed; the user decides which rule Phase 2 uses.
+| velog.io/@noeyhgnas, "서비스 기획 - 서비스 비교: 캐치테이블 vs 테이블링" (supplied by the user) | 웨이팅 순서 미루기 page (radio list "22번째로 미루기 +2분" ... to the last position, "남은 미루기 횟수 : 2회", 취소 / 순서 미루기, confirm sheet "38번째로 웨이팅을 미룰까요?" 취소 / 네, 미룰게요), 방문예정 page with 웨이팅 취소 / 웨이팅 미루기, cancel dialog and cancelled state ("웨이팅 취소", 등록 \| 취소 times), KakaoTalk texts ("순서를 미뤘어요", "한 매장 당 순서를 2번 미룰 수 있어요", "입장할 순서예요! 지금 매장으로 와주세요"), duplicate-registration sheet | Phase 2 customer screens |
+| docs.channel.io/catchtable, "대시보드 > 내역/정보 확인" and "대시보드 > 호출/착석/취소/되돌리기 방법" (CatchTable's own store help centre) | Store waiting dashboard: 접수중 (hours), 총 웨이팅 N팀 / N명, 웨이팅 등록, tabs 웨이팅 중 / 착석 / 취소, columns 순서 · 호출번호 (현장/수기/원격) · 웨이팅 정보 · 웨이팅상태 (elapsed, 미루기/되돌리기 flags) · 고객정보, buttons 호출 / 착석 / 취소, call limit 2 | M02 manager waiting page |
+
+**웨이팅 미루기 resolved (2026-10-23).** The user pointed to the velog post: the customer chooses how far
+back to move ("N번째로 미루기"), at most twice, never after being called. decisions.md now follows it.
 
 ## Capture checklist (requested 2026-10-23)
 

@@ -35,6 +35,8 @@ export const vivo = {
   awardBanner: null,
   ribbon: null,
   waitingEnabled: true,
+  // MOCK waiting settings; remoteMinTeams keeps the captured "2팀 이상부터 온라인 웨이팅 가능" (183200)
+  waiting: { accepting: true, minutesPerTeam: 20, remoteMinTeams: 2, maxPartySize: 4 },
   bookingEnabled: true,
   booking: {
     maxPartySize: 4,

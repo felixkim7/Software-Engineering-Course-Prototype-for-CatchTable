@@ -34,6 +34,8 @@ export const wolhwa = {
   awardBanner: { image: 'restaurants/wolhwa-ribbon-banner.jpg', alt: '이 곳은 블루리본 2개 맛집이에요! 주위 사람들에게 추천하고 싶은 곳' },
   ribbon: null,
   waitingEnabled: true,
+  // MOCK waiting settings; `accepting` is operational state the manager toggles (접수중/접수마감)
+  waiting: { accepting: true, minutesPerTeam: 15, remoteMinTeams: 0, maxPartySize: 6 },
   bookingEnabled: true,
   booking: {
     maxPartySize: 6,

@@ -74,6 +74,28 @@ export function formatDateTime(epochMs) {
   return dateTimeFormat.format(epochMs);
 }
 
+const partsOf = (instant) => Object.fromEntries(clockFormat.formatToParts(new Date(instant)).map((p) => [p.type, p.value]));
+const clockFormat = new Intl.DateTimeFormat('en-US', {
+  timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+});
+
+/** ISO string or epoch ms -> '2026.10.23 18:34', as the app's ticket timestamps. */
+export function formatDotDateTime(instant) {
+  const p = partsOf(instant);
+  return `${p.year}.${p.month}.${p.day} ${p.hour}:${p.minute}`;
+}
+
+/** ISO string or epoch ms -> '18:34:05' (manager dashboard). */
+export function formatTimeOfDay(instant) {
+  const p = partsOf(instant);
+  return `${p.hour}:${p.minute}:${p.second}`;
+}
+
+/** Whole minutes between two instants (ISO or epoch ms), never negative. */
+export function minutesBetween(from, to) {
+  return Math.max(0, Math.floor((new Date(to) - new Date(from)) / 60000));
+}
+
 /** 1453 -> '1,453', 29000 -> '2.9만' (save and review counts as the app shows them). */
 export function formatCount(count) {
   return count >= 10000 ? `${Number((count / 10000).toFixed(1))}만` : count.toLocaleString('ko-KR');

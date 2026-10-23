@@ -22,7 +22,7 @@ preset. Use presenter controls rather than hand-editing localStorage.
 | W01 | Register, leave detail, revisit, reload | Active status/party/position and View My Waiting visible |
 | W02 | Double-click registration or replay same command | One active ticket only |
 | W03 | Open detail for another customer/restaurant | No leaked active ticket |
-| W04 | Postpone behind one/two eligible parties | Legal new order; manager list agrees |
+| W04 | Postpone to a chosen later place (next one to last) | Legal new order; manager list agrees |
 | W05 | Exhaust postpone limit or try after call | Action disallowed with meaningful message |
 | W06 | Cancel, revisit detail | No stale active banner; CTA follows registration availability |
 | W07 | Manager calls then admits | Customer sees call; admission makes ticket terminal |

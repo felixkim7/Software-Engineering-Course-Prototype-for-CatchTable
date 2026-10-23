@@ -38,6 +38,7 @@ const PATHS = {
   navigate: '<circle cx="12" cy="12" r="9"/><path d="m8 12 8-4-4 8-1-3z"/>',
   play: '<rect x="3" y="5" width="18" height="14" rx="3" fill="currentColor" stroke="none"/><path d="m10 9 5 3-5 3z" fill="#FFFFFF" stroke="none"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><circle cx="12" cy="16.5" r=".6" fill="currentColor"/>',
   parking: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 17V8h3a2.5 2.5 0 0 1 0 5h-3"/>',
   bench: '<path d="M4 18v-6h16v6M6 12V7h5v5M13 12V7h5v5M3 18h18"/>',
   wine: '<path d="M7 3h4l-.5 5a2.5 2.5 0 0 1-3 0zM9 10v10M7 20h4M15 3h3v4.5a1.5 1.5 0 0 1-3 0zM16.5 9v11"/>',

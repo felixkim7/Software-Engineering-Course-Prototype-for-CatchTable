@@ -11,10 +11,10 @@ let dialogCount = 0;
 export function confirmDialog({ title, message, confirmLabel, cancelLabel = STRINGS.common.cancel, tone = 'primary' }) {
   const id = `dialog-${++dialogCount}`;
   const opener = document.activeElement;
-  const dialog = h('dialog', { class: 'dialog', 'aria-labelledby': `${id}-title`, 'aria-describedby': `${id}-message` },
+  const dialog = h('dialog', { class: 'dialog', 'aria-labelledby': `${id}-title`, 'aria-describedby': message ? `${id}-message` : null },
     h('form', { method: 'dialog' },
-      h('h2', { class: 'dialog__title', id: `${id}-title` }, title),
-      h('p', { class: 'dialog__message', id: `${id}-message` }, message),
+      h('h2', { class: 'dialog__title pre-line', id: `${id}-title` }, title),
+      message && h('p', { class: 'dialog__message', id: `${id}-message` }, message),
       h('div', { class: 'dialog__actions' },
         h('button', { class: 'button', value: 'cancel' }, cancelLabel),
         h('button', { class: `button button--${tone}`, value: 'confirm' }, confirmLabel))));

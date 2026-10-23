@@ -119,6 +119,30 @@ To-Be additions:
 - Keyboard and screen-reader access through a visually hidden radio group of hours.
 - A restaurant with no sufficient cell shows a collecting panel in the same section.
 
+## On-site waiting (Phase 2)
+
+Customer screens follow the user's captures 183123 (방문 인원 선택), 183234 (웨이팅 정보 확인),
+183410 (registered sheet), 183416 (방문예정), 183450 (cancel dialog) and 183200 (detail queue card),
+plus the velog screenshots for 웨이팅 순서 미루기 and the cancelled state. The manager page
+follows CatchTable's store dashboard help screenshots. Measured or chosen values:
+- Position numeral: 44px, weight 800, brand orange, with "번째" at 18px in #C93000.
+- Ticket card: white, 16px radius, soft shadow, on a #F7F8FA band. The notice box is #F3F4F6 with an "!" icon.
+- Postpone list rows: 60px, a native radio with brand accent, "+ N분" in #C93000. The current-place bar is #F7F8FA between borders.
+- Cancelled title: "웨이팅 취소" at 28px/800 in #8C8C8C (large text, 3.36:1).
+- To-Be ticket strip above the bottom bar:
+  - white with a 16px top radius;
+  - "웨이팅 중" pill in #DD3500 with white 12px bold text;
+  - the called state uses #FFF0EB.
+- Manager dashboard:
+  - The row number is #E8572F at 30px/800.
+  - Channel labels are 현장/수기/원격 in #C93000.
+  - Action buttons are 64px high with 20px bold labels:
+    - 호출 #00897B (4.32:1);
+    - 착석 #5C63D6 (4.99:1);
+    - 취소 #D63A52 (4.58:1).
+  - A called row is tinted #FFF7F3.
+  - The app's navy seat-type cards are omitted (this demo has a single 매장 식사 queue).
+
 ## Reference inventory
 
 See `reference-screens/README.md` for the per-file inventory and missing references.
@@ -136,5 +160,7 @@ the same palette.
 | customer/restaurant.html (49-capture pass) | 171054-171404, 171546-171646, 171732, 173157-173324, 173602 | 390x844, 360x780 | Tabs switch panels: menu with thumbnails and boards, photo filters and grid, review distribution (no bodies), store info with map, facilities, guides and details, plus 소식/방송 for 스시렌. Calendar sheet and visit confirmation match 171404/171732; statistics match 173602 apart from the To-Be additions; ribbon above the bar for 스시렌. The weekly-hours and second-station rows expand. Not reproduced: the app-install banner, review bodies, live viewer counts | Checked 2026-10-23 |
 | customer/search.html | 173403 | 390x844, 360x780 | Matches the bordered box with blue 날짜·인원, recent-view chips, pink suggestion chips and hashtags. Recent searches and name-based suggestions (personal) are replaced by generic suggestions; the "어떤 매장을 찾으세요?" cards and benefit banner are omitted | Checked 2026-10-23 |
 | customer/saved.html | 173436 | 390x844, 360x780 | Matches header (저장/추천, badge, 새 컬렉션), collections, 저장한 매장 N, 함께고르기, picker bar, sort chips, entries with photos and date chips. Lists the demo customer's saves, not the capture's. "추천" grey darkened to 4.5:1 | Checked 2026-10-23 |
+| customer/waiting-register.html, waiting.html (Phase 2) | 183123, 183234, 183410, 183416, 183450; velog postpone/cancel screenshots | 390x844, 360x780 | Steppers, confirm card, rules box, registered sheet, ticket card, notice, cancel dialog, postpone list and confirm sheet match. Not reproduced: ads, "주변 맛집" map, KakaoTalk live-activity CTA (실시간 순서 함께 확인하기 → 확인). To-Be: ticket strip on the detail page | Checked 2026-10-23 |
+| manager/waiting.html (Phase 2) | CatchTable dashboard help screenshots (channel.io) | 1440x900, 1024x768 | 접수 switch, totals, tabs, columns and 호출/착석/취소 colours match. Seat-type cards, 3-second undo and 되돌리기 omitted; 웨이팅 등록 explains it is not in the demo | Checked 2026-10-23 |
 | customer/my-dining.html | 173505, 173513, 173524 | 390x844, 360x780 | Matches title, 나의 예약/나의 알림 underline tabs, filled filter chips, empty-state copy and button. Benefit banner and personal recommended searches omitted | Checked 2026-10-23 |
 | customer/restaurant.html (fidelity pass) | 183144, 183200, 183347, 183357, 183425, 183433 | 390x844, 360x780, side-by-side image | Matches header icons and scrolled title, photo carousel, Blue Ribbon chip, name + 함께 고르기, rating row, subway badges, info rows, tag chips, tabs, coupon, segmented control, date chips, 예약 오픈 일정, AI summary, save/phone/CTA bar. Not reproduced: "N명이 보고 있어요" (fake live data), app-install banner. Picker sheet, menu/review/info sections and statistics are provisional until captured | Checked 2026-10-23 |

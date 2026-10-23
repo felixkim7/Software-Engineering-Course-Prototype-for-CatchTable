@@ -15,9 +15,12 @@ Keep all values in `core/config.js` when implemented. User instructions may chan
 | Empty eligible queue | Slot becomes AVAILABLE; no auto-booking; normal booking is outside core demo |
 | Duplicate requests | One active request per customer and exact condition key |
 | Deadline boundary | Valid only when now < expiresAt; equality means expired |
-| Waiting duplicates | One active ticket per customer per restaurant; cross-restaurant limits not modeled |
-| Postponement | Move behind 1 or 2 additional eligible waiting parties; offered choices depend on queue length. **Open (2026-10-23):** public posts describe the real app as "move to the back of the queue, about 2 times, not after being called" (docs/reference-screens/README.md, Online references). Unchanged until the user decides |
-| Postponement limits | WAITING tickets only; at most two demo postponements; configurable |
+| Waiting duplicates | One active ticket per customer per restaurant; cross-restaurant limits (the app allows 3) not modeled |
+| Waiting estimate | MOCK: position x the restaurant's minutes per team (r1 15, r2 20), always shown as "약 N분" with a may-differ note |
+| Waiting registration | Each waiting restaurant has an `accepting` switch the manager toggles (접수중/접수마감), not tied to the clock. r2 also keeps the captured rule "2팀 이상부터 온라인 웨이팅 가능" (app registration needs 2+ active parties) |
+| Calls | A manager may call a party at most 2 times (CatchTable dashboard help); calling makes the ticket CALLED |
+| Postponement | As the real app's "웨이팅 순서 미루기" page (velog screenshots, confirmed by the user 2026-10-23): the customer picks any later position from the next one down to the last active party ("N번째로 미루기 +M분"), then confirms. Choices are recomputed from the live queue; a stale choice is rejected |
+| Postponement limits | WAITING tickets only (not after being called); at most 2 per ticket ("한 매장 당 순서를 2번 미룰 수 있어요"); `POLICY.waitingPostponeLimit` |
 | Statistics | Fixture average wait minutes and average waiting teams per weekday/hour, as the app's "요일별 평균 웨이팅 시간" chart (173602); last 4 weeks; minimum 5 records per cell. Shown as a line chart over hours 6-24; the tooltip sits above the plot so it never hides a peak |
 | Sparse statistics | Mark collecting data for sparse cells/restaurant; never invent zero or precise forecasts |
 | Reservation deposit | KRW 20,000 for booking fixture; zero-deposit fixture for alternative flow |
@@ -37,5 +40,5 @@ Do not implement a production seat optimizer, fee engine, identity service or di
 lock. If the actual screenshots show different baseline postponement options, update
 these demo defaults and document the change; do not change the new waiting visibility requirement.
 
-Open choices to confirm during visual review: manager layout and the postponement rule above.
+Open choices to confirm during visual review: none blocking. The manager layout follows CatchTable's dashboard help screenshots.
 The font (Pretendard), logo and statistics chart form were settled from captures. They do not block building a provisional shell.
