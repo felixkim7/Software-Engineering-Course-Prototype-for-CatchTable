@@ -13,6 +13,10 @@ import {
   postponeChoices, postponeWaiting, queuePosition, registerWaiting, registrationStatus, seatTicket, setAccepting,
 } from '../assets/js/services/waiting.js';
 import { applyPreset } from '../assets/js/services/presets.js';
+import {
+  declineOffer, findRequest, joinQueue, offerIsLive, queueRank, reconcileOffers, releaseSlot, withdrawRequest,
+} from '../assets/js/services/allocation.js';
+import { customerNotifications, retryFailedNotifications, setFailNextNotification } from '../assets/js/services/notification.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const results = [];
@@ -301,6 +305,105 @@ try {
     setPreference('activeCustomerId', 'c1');
     assert(cancelWaiting('w-r1-6').ok && cancelWaiting('w-r1-6').reason === 'TICKET_ENDED', 'cancel twice');
     assert(activeTicketFor(getState(), 'r1') === null && registrationStatus(getState(), r1()).open, 'register again after cancel');
+  });
+
+  // ---- Cancellation-seat queue (Phase 3) ----
+  const condition = (partySize = 2, serviceTime = '19:00') => ({ restaurantId: 'r1', serviceDate: addDays(getState().meta.baseDate, 1), serviceTime, partySize });
+  const liveOffers = () => getState().priorityOffers.filter((o) => o.status === 'OFFERED');
+  const MINUTE = 60 * 1000;
+
+  await check('Q01 one release, one offer: older mismatched request skipped, FIFO kept', () => {
+    applyPreset('cancellationReady');
+    const result = releaseSlot(condition());
+    const state = getState();
+    const [offer] = liveOffers();
+    assert(result.ok && liveOffers().length === 1 && offer.ownerId === 'c1' && offer.requestId === 'cr-2', JSON.stringify(liveOffers()));
+    assert(findRequest(state, 'cr-1').status === 'QUEUED' && findRequest(state, 'cr-3').status === 'QUEUED', 'others changed');
+    const slot = state.releasedSlots.find((s) => s.id === result.slotId);
+    assert(slot.status === 'HELD' && slot.offerId === offer.id && offer.expiresAt === new Date(Date.parse(offer.issuedAt) + POLICY.offerLifetimeMs).toISOString(), 'hold/deadline');
+  });
+
+  await check('Q02 repeated reconcile writes nothing; a second slot goes to the next request', () => {
+    applyPreset('offerActive');
+    const revision = getState().meta.revision;
+    assert(reconcileOffers().expired === 0 && reconcileOffers().expired === 0 && getState().meta.revision === revision, 'reconcile wrote');
+    releaseSlot(condition());
+    const owners = liveOffers().map((o) => o.ownerId).sort().join();
+    const perSlot = getState().releasedSlots.every((s) => liveOffers().filter((o) => o.slotId === s.id).length === 1);
+    assert(owners === 'c1,c2' && perSlot, owners);
+  });
+
+  await check('Q03 a non-owner cannot decline or withdraw, and nothing changes', () => {
+    applyPreset('offerActive');
+    const [offer] = liveOffers();
+    setPreference('activeCustomerId', 'c2');
+    const before = JSON.stringify(getState().priorityOffers);
+    assert(declineOffer(offer.id).reason === 'OFFER_NOT_OWNED' && withdrawRequest('cr-2').reason === 'REQUEST_NOT_OWNED', 'non-owner accepted');
+    assert(JSON.stringify(getState().priorityOffers) === before, 'state changed');
+    setPreference('activeCustomerId', 'c1');
+  });
+
+  await check('Q04/Q05 absolute deadline; expiry hands off exactly once', () => {
+    applyPreset('offerActive');
+    const [offer] = liveOffers();
+    advance(MINUTE);
+    reconcileOffers();
+    assert(liveOffers()[0]?.id === offer.id && liveOffers()[0].expiresAt === offer.expiresAt, 'deadline moved or expired early');
+    advance(MINUTE + 1000);
+    assert(reconcileOffers().expired === 1 && reconcileOffers().expired === 0, 'expired more than once');
+    const [next] = liveOffers();
+    assert(findRequest(getState(), 'cr-2').status === 'EXPIRED' && next?.ownerId === 'c2' && liveOffers().length === 1, 'successor');
+    assert(Date.parse(next.expiresAt) - Date.parse(next.issuedAt) === POLICY.offerLifetimeMs, 'successor deadline');
+  });
+
+  await check('Q05 decline hands off to exactly one successor; c3 (4 people) never matches', () => {
+    applyPreset('offerActive');
+    const [offer] = liveOffers();
+    assert(declineOffer(offer.id).ok && declineOffer(offer.id).reason === 'OFFER_ENDED', 'decline twice');
+    assert(findRequest(getState(), 'cr-2').status === 'DECLINED' && liveOffers().map((o) => o.ownerId).join() === 'c2', 'successor');
+    setPreference('activeCustomerId', 'c2');
+    declineOffer(liveOffers()[0].id);
+    setPreference('activeCustomerId', 'c1');
+    const slot = getState().releasedSlots[0];
+    assert(liveOffers().length === 0 && slot.status === 'AVAILABLE' && findRequest(getState(), 'cr-1').status === 'QUEUED', 'mismatched request offered');
+  });
+
+  await check('Q06 deadline boundary: now === expiresAt is expired', () => {
+    const offer = { status: 'OFFERED', expiresAt: new Date(1000).toISOString() };
+    assert(offerIsLive(offer, 999) && !offerIsLive(offer, 1000) && !offerIsLive({ ...offer, status: 'DECLINED' }, 0), 'boundary');
+  });
+
+  await check('Q07 nobody eligible: the slot becomes AVAILABLE and the time reopens', () => {
+    resetDemo();
+    const time = () => bookingTimes(getState(), r1(), condition().serviceDate, now()).find((t) => t.time === '19:00');
+    assert(time().soldOut && !time().available, 'fixture not sold out');
+    const result = releaseSlot(condition());
+    assert(result.ok && getState().priorityOffers.length === 0 && getState().releasedSlots[0].status === 'AVAILABLE' && time().available, 'not reopened');
+  });
+
+  await check('Q08 a failed notification keeps the offer and deadline; retry delivers it', () => {
+    applyPreset('cancellationReady');
+    setFailNextNotification(true);
+    releaseSlot(condition());
+    const [offer] = liveOffers();
+    const note = getState().notifications.find((n) => n.entityId === offer.id);
+    assert(note.deliveryStatus === 'FAILED' && !getState().meta.failNextNotification && customerNotifications(getState()).length === 0, 'delivery');
+    assert(retryFailedNotifications().ok && customerNotifications(getState())[0].entityId === offer.id, 'retry');
+    assert(liveOffers()[0].expiresAt === offer.expiresAt, 'deadline extended');
+  });
+
+  await check('requests: one live per exact condition, open times refused, withdraw hands on, rejoin is new', () => {
+    applyPreset('cancellationReady');
+    assert(joinQueue(condition()).reason === 'DUPLICATE_REQUEST', 'duplicate');
+    assert(joinQueue(condition(2, '18:00')).reason === 'TIME_AVAILABLE', 'open time accepted');
+    assert(joinQueue(condition(9)).reason === 'INVALID_CONDITION', 'party over max');
+    const other = joinQueue(condition(2, '19:30'));
+    assert(other.ok && queueRank(getState(), findRequest(getState(), other.requestId)) === 1, 'other condition');
+    releaseSlot(condition());
+    assert(withdrawRequest('cr-2').ok && findRequest(getState(), 'cr-2').status === 'CANCELLED' && liveOffers()[0].ownerId === 'c2', 'withdraw offered');
+    const again = joinQueue(condition());
+    const fresh = findRequest(getState(), again.requestId);
+    assert(again.ok && again.requestId !== 'cr-2' && fresh.requestedAt > findRequest(getState(), 'cr-2').requestedAt, 'rejoin');
   });
 } finally {
   if (backup === null) localStorage.removeItem(STORAGE_KEY);

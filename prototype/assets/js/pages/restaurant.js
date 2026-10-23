@@ -10,6 +10,7 @@ import { pageUrl, queryParam } from '../core/nav.js';
 import { waitingStatistics } from '../services/statistics.js';
 import { isSaved, toggleSaved, hasCoupon, claimCoupon, recordView } from '../services/customer.js';
 import { activeTicketFor, registrationStatus } from '../services/waiting.js';
+import { liveRequestFor, reconcileOffers } from '../services/allocation.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { pageHeader } from '../ui/header.js';
@@ -17,6 +18,7 @@ import { showToast, copyWithToast } from '../ui/toast.js';
 import { waitingStatsSection } from '../ui/waiting-stats.js';
 import { bookingPanel } from '../ui/booking-panel.js';
 import { queueBlock, ticketStrip } from '../ui/waiting-live.js';
+import { cancellationStrip, openJoinSheet } from '../ui/cancellation-ui.js';
 import { photoCarousel, summaryBlock, couponCard, aiSummaryCard } from '../ui/detail-summary.js';
 import { homePreviews, menuPanel, photosPanel, reviewsPanel, infoPanel, newsPanel, broadcastsPanel } from '../ui/detail-panels.js';
 
@@ -80,6 +82,12 @@ function renderDetail(state, restaurant) {
   const booking = restaurant.bookingEnabled && bookingPanel(state, restaurant, nowMs, {
     heading: restaurant.waitingEnabled ? null : R.bookingHeading,
     onConfirm: () => showToast(R.bookingUnavailable),
+    onSoldOut: (condition) => {
+      const existing = liveRequestFor(getState(), condition);
+      if (existing) window.location.href = pageUrl('customer/cancellation-queue.html');
+      else openJoinSheet(restaurant, condition, () => { window.location.href = pageUrl('customer/cancellation-queue.html'); });
+    },
+    isJoined: (condition) => Boolean(liveRequestFor(getState(), condition)),
   });
   const W = STRINGS.waiting;
   const queueSlot = h('div', { class: 'queue-slot' });
@@ -113,11 +121,14 @@ function renderDetail(state, restaurant) {
     if (action.href) window.location.href = action.href;
     else showToast(STRINGS.errors[action.reason]);
   }
+  // Strips above the bottom bar: live waiting ticket and live cancellation-seat request/offer
   function refreshWaiting() {
-    if (!restaurant.waitingEnabled) return;
     const latest = getState();
-    queueSlot.replaceChildren(queueBlock(latest, restaurant, () => { refreshWaiting(); showToast(W.refreshed); }));
-    stripSlot.replaceChildren(...[ticketStrip(latest, myTicket())].filter(Boolean));
+    if (restaurant.waitingEnabled) queueSlot.replaceChildren(queueBlock(latest, restaurant, () => { refreshWaiting(); showToast(W.refreshed); }));
+    stripSlot.replaceChildren(...[
+      restaurant.bookingEnabled && cancellationStrip(latest, restaurant),
+      ticketStrip(latest, myTicket()),
+    ].filter(Boolean));
     refreshCta();
   }
 
@@ -213,6 +224,8 @@ function renderDetail(state, restaurant) {
   refreshCoupon();
   refreshWaiting();
   subscribe(() => { refreshSaved(); refreshCoupon(); refreshWaiting(); });
+  // Offer deadlines are absolute: re-check them so an expired offer hands off and its strip goes.
+  window.setInterval(reconcileOffers, 5000);
 
   const name = app.querySelector('.detail-summary__name');
   const onScroll = () => header.classList.toggle('is-scrolled', name.getBoundingClientRect().bottom < header.getBoundingClientRect().bottom);
@@ -230,6 +243,7 @@ function renderNotFound() {
       h('a', { class: 'button button--primary', href: homeHref }, R.notFoundAction)));
 }
 
+reconcileOffers();  // expire overdue offers before the first render
 const state = getState();
 const restaurant = state.restaurants.find((r) => r.id === queryParam('restaurantId'));
 if (restaurant) renderDetail(state, restaurant);

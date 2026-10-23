@@ -5,14 +5,17 @@ Keep all values in `core/config.js` when implemented. User instructions may chan
 
 | Topic | Demo default |
 |---|---|
-| Offer lifetime | 120 seconds from allocation; displayed countdown uses absolute deadline |
+| Offer lifetime | 120 seconds from allocation (`POLICY.offerLifetimeMs`); the countdown is expiresAt - now(), so reloads and the presenter clock never restart it |
+| Joining the queue | From the C02 booking sheet: sold-out times are listed (To-Be; the app hides them) and tapping one opens the 빈자리 대기 신청 sheet for that exact date/time/party. Open times are refused (TIME_AVAILABLE) |
+| Reconcile | Expired offers are handed on by reconcile(), which every queue-related page runs on load and every 1-5 s, and the hub runs after a clock jump. It writes only when an offer is due, so repeated calls are harmless |
+| Notifications | MOCK delivery records (SENT/FAILED) created in the same commit as the event. A presenter one-shot can fail the next one; the offer stays visible in C04/C02/마이다이닝 and its deadline is unchanged; retry marks it SENT. The inbox lists delivered ones only |
 | Payment processing limit | 60 seconds after a valid accept request; unresolved outcome keeps a hold |
 | Mock service delay | 600 ms for normal responses; presenter can force success/failure/unknown |
 | Matching | Exact restaurant ID, date, time and party size; one slot unit fits that party |
 | FIFO | ascending requestedAt, then stable request ID; never privilege the displayed user |
 | Slot model | One released slot unit can produce one reservation; capacity matching is simplified |
 | Decline/expiry | End this request as DECLINED/EXPIRED; rejoining creates a new timestamp |
-| Empty eligible queue | Slot becomes AVAILABLE; no auto-booking; normal booking is outside core demo |
+| Empty eligible queue | Slot becomes AVAILABLE; no auto-booking; its time reopens in the ordinary booking sheet (normal booking payment stays outside the demo) |
 | Duplicate requests | One active request per customer and exact condition key |
 | Deadline boundary | Valid only when now < expiresAt; equality means expired |
 | Waiting duplicates | One active ticket per customer per restaurant; cross-restaurant limits (the app allows 3) not modeled |

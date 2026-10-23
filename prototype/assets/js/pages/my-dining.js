@@ -7,15 +7,19 @@ import { pageUrl } from '../core/nav.js';
 import { customerTickets, queuePosition } from '../services/waiting.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
-import { notInDemo } from '../ui/toast.js';
 import { bottomNav } from '../ui/bottom-nav.js';
 import { restaurantPhoto } from '../ui/restaurant.js';
+import { liveRequestSummary } from '../ui/cancellation-ui.js';
+import { unreadCount } from '../services/notification.js';
+import { reconcileOffers } from '../services/allocation.js';
 
 const M = STRINGS.myDining;
 const W = STRINGS.waiting;
 const EMPTY = { upcoming: M.emptyUpcoming, visited: M.emptyVisited, cancelled: M.emptyCancelled };
 const FILTER_STATUSES = { upcoming: ['WAITING', 'CALLED'], visited: ['SEATED'], cancelled: ['CANCELLED'] };
 const body = h('div', { class: 'my-dining__body' });
+const queueEntry = h('div', { class: 'queue-entry-slot' });
+const alarmTab = h('a', { class: 'underline-tab', href: pageUrl('customer/inbox.html') });
 let filter = 'upcoming';
 
 function ticketCard(state, ticket) {
@@ -34,8 +38,20 @@ function ticketCard(state, ticket) {
       icon('chevronRight')));
 }
 
+// 빈자리 대기 entry (cancellation-seat requests live on their own page) and the 나의 알림 badge
+function refreshLinks(state) {
+  const { count, offer } = liveRequestSummary(state);
+  queueEntry.replaceChildren(...(count ? [h('a', { class: `queue-entry${offer ? ' has-offer' : ''}`, href: pageUrl('customer/cancellation-queue.html') },
+    h('span', { class: 'queue-entry__title' }, STRINGS.cancellation.entryCard(count)),
+    offer && h('span', { class: 'queue-entry__offer' }, STRINGS.cancellation.entryOffer),
+    icon('chevronRight'))] : []));
+  const unread = unreadCount(state);
+  alarmTab.replaceChildren(M.tabs[1], unread ? h('span', { class: 'count-dot' }, String(unread)) : '');
+}
+
 function show() {
   const state = getState();
+  refreshLinks(state);
   const tickets = customerTickets(state).filter((t) => FILTER_STATUSES[filter].includes(t.status));
   body.replaceChildren(tickets.length
     ? h('ul', { class: 'dining-list' }, tickets.map((ticket) => ticketCard(state, ticket)))
@@ -52,7 +68,8 @@ document.getElementById('app').replaceChildren(
   h('main', { class: 'mobile-content my-dining' },
     h('div', { class: 'underline-tabs' },
       h('span', { class: 'underline-tab is-active', 'aria-current': 'page' }, M.tabs[0]),
-      h('button', { class: 'underline-tab', type: 'button', onclick: notInDemo }, M.tabs[1])),
+      alarmTab),
+    queueEntry,
     h('fieldset', { class: 'choice-chips' },
       h('legend', { class: 'visually-hidden' }, M.tabs[0]),
       Object.entries(M.filters).map(([key, label]) => h('label', { class: 'choice-chip' },
@@ -61,5 +78,6 @@ document.getElementById('app').replaceChildren(
     body),
   bottomNav('myDining'),
 );
+reconcileOffers();
 show();
 subscribe(show);

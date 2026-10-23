@@ -13,13 +13,13 @@ work under both a local server and a project subpath. Preserve IDs across naviga
 | C11 | customer/my-dining.html | 마이다이닝 tab: 나의 예약 with 방문예정/방문완료/취소·노쇼 empty states now; waiting tickets and reservations later | 1 (fidelity pass), 2-5 |
 | C03 | customer/waiting.html?ticketId=...[&view=postpone] | 방문예정: place in line, ticket number, estimate, cancel; 웨이팅 순서 미루기 view (choose a later place, confirm sheet); called / seated / cancelled states; registered sheet | 2 |
 | C13 | customer/waiting-register.html?restaurantId=r1 | 방문 인원 선택 (steppers) then 웨이팅 정보 확인 (teams, estimate, rules) and 웨이팅 등록하기. Pages instead of a C02 sheet because the app captures (183123, 183234) show full screens | 2 |
-| C04 | customer/cancellation-queue.html | Join conditions, pending requests, withdraw, open current offer | 3 |
-| C05 | customer/offer.html?offerId=... | Exclusive offer, countdown, owner check, decline, proceed to checkout | 3-4 |
+| C04 | customer/cancellation-queue.html | 빈자리 대기: live requests (rank among identical conditions, request ID), the current offer with deadline, withdraw, ended requests. Conditions are entered from the C02 booking sheet (sold-out time → join sheet) | 3 |
+| C05 | customer/offer.html?offerId=... | 우선 예약 기회: exclusive offer, countdown to the absolute deadline, owner check, decline, rejoin after it ends; 예약하기 explains checkout arrives in Phase 4 | 3-4 |
 | C06 | customer/checkout.html?offerId=... | Booking summary, policies, demo payment, pending/failure/recovery states | 4 |
 | C07 | customer/reservation.html?reservationId=... | Confirmation or existing booking detail, ETA form and coordination history | 4-5 |
 | C08 | customer/reservations.html | Seeded and newly confirmed reservations, links to detail | 4 |
-| C09 | customer/inbox.html | Offers, booking confirmations, calls and late responses; links to authoritative records | 3-5 |
-| M01 | manager/reservations.html | Restaurant-scoped bookings and cancellation allocation status | 3-5 |
+| C09 | customer/inbox.html | 나의 알림 (also the 마이다이닝 tab and the home bell): offers, expiries and waiting calls now; confirmations and late responses later | 3-5 |
+| M01 | manager/reservations.html | 예약 · 빈자리: released slots with holder/deadline/next in line, and the restaurant's requests in FIFO order (same IDs as C04); bookings join in Phase 4 | 3-5 |
 | M02 | manager/waiting.html | 접수중/접수마감 switch, totals, 웨이팅 중 / 착석 / 취소 tabs, rows with 호출 / 착석 / 취소 for the active manager's restaurant only | 2 |
 | M03 | manager/reservation.html?reservationId=... | Booking + ETA, retain/propose/cannot-retain actions and final history | 5 |
 

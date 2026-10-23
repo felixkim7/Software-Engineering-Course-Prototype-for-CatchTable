@@ -2,10 +2,13 @@
 import { STRINGS } from '../core/strings.js';
 import { getState, getStorageStatus, subscribe, resetDemo, setPreference } from '../core/store.js';
 import { now, advance } from '../core/clock.js';
-import { formatDateKey, formatDateTime } from '../core/format.js';
+import { addDays, formatClockTime, formatDateKey, formatDateTime } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
 import { applyPreset, PRESET_KEYS } from '../services/presets.js';
 import { addWalkIn } from '../services/waiting.js';
+import { reconcileOffers, releaseSlot, findOffer } from '../services/allocation.js';
+import { setFailNextNotification, retryFailedNotifications, failedNotifications } from '../services/notification.js';
+import { dateLabel } from '../ui/cancellation-ui.js';
 import { h } from '../ui/dom.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
@@ -28,7 +31,9 @@ async function requestReset() {
 
 function advanceBy(minutes) {
   const result = advance(minutes * MINUTE_MS);
-  showToast(result.ok ? T.clockAdvanced(minutes) : STRINGS.errors[result.reason]);
+  if (!result.ok) { showToast(STRINGS.errors[result.reason]); return; }
+  const { expired } = reconcileOffers();  // jumping the clock may pass offer deadlines
+  showToast(expired ? `${T.clockAdvanced(minutes)} ${T.offersExpired(expired)}` : T.clockAdvanced(minutes));
 }
 
 function changePreference(key, value, successMessage) {
@@ -136,13 +141,65 @@ function buildWalkInPanel(state) {
     }))));
 }
 
+// Release one slot unit (another customer's cancellation); allocation runs immediately.
+function buildReleasePanel(state) {
+  const restaurants = state.restaurants.filter((r) => r.bookingEnabled);
+  const field = (id, label, control) => h('div', { class: 'hub-field' }, h('label', { for: id }, label), control);
+  const restaurantSelect = h('select', { id: 'release-restaurant', onchange: fillOptions }, restaurants.map((r) => h('option', { value: r.id }, r.name)));
+  const dateSelect = h('select', { id: 'release-date' });
+  const timeSelect = h('select', { id: 'release-time' });
+  const partySelect = h('select', { id: 'release-party' });
+  function fillOptions() {
+    const restaurant = restaurants.find((r) => r.id === restaurantSelect.value);
+    const base = getState().meta.baseDate;
+    dateSelect.replaceChildren(...Array.from({ length: 7 }, (_, i) => addDays(base, i)).map((key) => h('option', { value: key }, dateLabel(key))));
+    timeSelect.replaceChildren(...restaurant.booking.times.map((time) => h('option', { value: time }, formatClockTime(time))));
+    partySelect.replaceChildren(...Array.from({ length: restaurant.booking.maxPartySize }, (_, i) => h('option', { value: i + 1 }, T.partyOption(i + 1))));
+    if (restaurant.id === 'r1') { dateSelect.value = addDays(base, 1); timeSelect.value = '19:00'; partySelect.value = '2'; }  // fixture slot
+  }
+  function onRelease() {
+    const result = releaseSlot({ restaurantId: restaurantSelect.value, serviceDate: dateSelect.value, serviceTime: timeSelect.value, partySize: Number(partySelect.value) });
+    if (!result.ok) { showToast(STRINGS.errors[result.reason]); return; }
+    const latest = getState();
+    const slot = latest.releasedSlots.find((s) => s.id === result.slotId);
+    const owner = slot.offerId && latest.customers.find((c) => c.id === findOffer(latest, slot.offerId).ownerId);
+    showToast(owner ? T.releasedOffer(owner.displayName) : T.releasedAvailable);
+  }
+  fillOptions();
+  return panel(T.releaseHeading,
+    h('p', { class: 'hub-hint' }, T.releaseHint),
+    h('div', { class: 'hub-form' },
+      field('release-restaurant', T.releaseRestaurant, restaurantSelect),
+      field('release-date', T.releaseDate, dateSelect),
+      field('release-time', T.releaseTime, timeSelect),
+      field('release-party', T.releaseParty, partySelect)),
+    button(T.release, onRelease, 'button--primary'));
+}
+
+function buildNotifyPanel() {
+  refs.failState = h('p', { class: 'hub-hint', role: 'status' });
+  refs.retryButton = button('', () => {
+    const result = retryFailedNotifications();
+    showToast(result.ok ? T.retried : STRINGS.errors[result.reason]);
+  });
+  return panel(T.notifyHeading,
+    h('p', { class: 'hub-hint' }, T.notifyHint),
+    refs.failState,
+    h('div', { class: 'button-row' },
+      button(T.failNext, () => { const result = setFailNextNotification(true); showToast(result.ok ? T.failArmed : STRINGS.errors[result.reason]); }),
+      refs.retryButton));
+}
+
 function buildScreensPanel(state) {
   const link = (label, path, params) => h('li', {}, h('a', { href: pageUrl(path, params) }, label));
   return panel(T.screensHeading,
     h('ul', { class: 'hub-list' },
       link(T.customerApp, 'customer/discovery.html'),
       state.restaurants.map((restaurant) => link(T.restaurantLink(restaurant), 'customer/restaurant.html', { restaurantId: restaurant.id })),
+      link(T.queueLink, 'customer/cancellation-queue.html'),
+      link(T.inboxLink, 'customer/inbox.html'),
       link(T.managerApp, 'manager/waiting.html'),
+      link(T.managerReservations, 'manager/reservations.html'),
       link(T.uiSample, 'customer/ui-sample.html'),
       link(T.selfCheck, 'tests/index.html')));
 }
@@ -161,6 +218,10 @@ function refresh() {
   refs.roleInputs.forEach((input) => { input.checked = input.value === state.meta.activeRole; });
   refs.customerSelect.value = state.meta.activeCustomerId;
   refs.managerSelect.value = state.meta.activeManagerId;
+  refs.failState.textContent = T.failState(Boolean(state.meta.failNextNotification));
+  const failed = failedNotifications(state).length;
+  refs.retryButton.textContent = T.retryFailed(failed);
+  refs.retryButton.disabled = failed === 0;
   refreshClock();
 }
 
@@ -175,8 +236,12 @@ document.getElementById('app').replaceChildren(
     buildIdentityPanel(initialState),
     buildPresetsPanel(),
     buildScreensPanel(initialState),
-    buildWalkInPanel(initialState)),
+    buildReleasePanel(initialState),
+    buildWalkInPanel(initialState),
+    buildNotifyPanel()),
 );
 refresh();
 subscribe(refresh);
 setInterval(refreshClock, 1000);  // view refresh only; demo time itself comes from clock.now()
+reconcileOffers();
+setInterval(reconcileOffers, 5000);  // the hub also hands on expired offers while it is the open tab

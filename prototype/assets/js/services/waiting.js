@@ -5,6 +5,7 @@
 import { POLICY } from '../core/config.js';
 import { commit } from '../core/store.js';
 import { now } from '../core/clock.js';
+import { notify } from './notification.js';
 
 const ACTIVE = new Set(['WAITING', 'CALLED']);
 export const isActive = (ticket) => ACTIVE.has(ticket.status);
@@ -159,6 +160,12 @@ export function callTicket(ticketId) {
     if (error) return error;
     if (ticket.callCount >= POLICY.waitingCallLimit) return reject('CALL_LIMIT');
     Object.assign(ticket, { status: 'CALLED', callCount: ticket.callCount + 1, calledAt: new Date(now()).toISOString() });
+    if (ticket.customerId) {
+      notify(state, {
+        customerId: ticket.customerId, kind: 'WAITING_CALLED', entityType: 'waitingTicket', entityId: ticket.id,
+        data: { restaurantId: ticket.restaurantId, ticketNumber: ticket.ticketNumber },
+      });
+    }
   });
 }
 

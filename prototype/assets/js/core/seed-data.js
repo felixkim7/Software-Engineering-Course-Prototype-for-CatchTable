@@ -113,6 +113,7 @@ export function createSeed(resetAtMs, scenarioEpoch = 1) {
       activeRole: 'customer',
       activeCustomerId: 'c1',
       activeManagerId: 'm1',
+      failNextNotification: false,  // presenter one-shot (services/notification.js)
     },
     customers: customers(),
     managers: managers(),

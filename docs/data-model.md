@@ -10,16 +10,16 @@
 | SavedRestaurant | customerId, restaurantId, savedAt |
 | CouponClaim | customerId, couponId, claimedAt |
 | RecentView | customerId, restaurantId, viewedAt (one per customer and restaurant, newest first) |
-| ReleasedSlot | id, restaurantId, serviceDate, serviceTime, partySize, status, offerId, reservationId |
-| CancellationRequest | id, customerId, restaurantId, serviceDate, serviceTime, partySize, requestedAt, status |
-| PriorityOffer | id, requestId, slotId, ownerId, status, issuedAt, expiresAt, paymentOperationId |
+| ReleasedSlot | id (`rs-n`), restaurantId, serviceDate, serviceTime, partySize, status (AVAILABLE/HELD/BOOKED), offerId, reservationId, releasedAt |
+| CancellationRequest | id (`cr-n`, shown to customer and manager), customerId, restaurantId, serviceDate, serviceTime, partySize, requestedAt, status, offerId, endedAt |
+| PriorityOffer | id (`of-n`), requestId, slotId, ownerId, status, issuedAt, expiresAt, endedAt, paymentOperationId |
 | PaymentOperation | id, offerId, customerId, amountKRW, status, createdAt, resolvedAt, reservationId |
 | Reservation | id, customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status, sourceOfferId |
 | WaitingTicket | id (`w-<restaurant>-<number>`), customerId (null for other parties), guest (fictional masked phone), restaurantId, ticketNumber, channel (app/onsite/manual), party {adults, infants}, partySize, queueOrder, status, postponementCount, callCount, registeredAt, calledAt, endedAt, endedBy |
 | WaitingStatistic | restaurantId, weekday, timeSlot, avgMinutes, avgTeams, sampleCount, periodStart, periodEnd, updatedAt |
 | LateCoordination | id, reservationId, version, expectedArrival, status, proposedTime, history[] |
-| Notification | id, recipientType, recipientId, entityType, entityId, kind, deliveryStatus, readAt, createdAt |
-| StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, activeRole, activeCustomerId, activeManagerId |
+| Notification | id (`nt-n`), recipientType, recipientId, entityType (offer/waitingTicket), entityId, kind (OFFER_ISSUED/OFFER_EXPIRED/WAITING_CALLED), data (display facts), deliveryStatus (SENT/FAILED), attempts, readAt, createdAt |
+| StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, resetAt, baseDate, activeRole, activeCustomerId, activeManagerId, failNextNotification |
 
 Queue position is derived from active tickets sorted by queueOrder; it is not a fixed
 number written independently into every page. Cancellation FIFO uses requestedAt and
@@ -85,7 +85,8 @@ People and operational records are fictional; restaurants r1-r3 are real public 
 - r3 스시렌 (real listing): booking-only, zero deposit; no irrelevant waiting section.
 - c1: presenter customer; active role switches between reservation and waiting experiences.
 - c2: next eligible customer; selectable only in presenter tools.
-- c3: an older applicant with a mismatched party size, proving matching before FIFO.
+- c3: an older applicant with a mismatched party size, proving matching before FIFO
+  (cancellation-ready: cr-1 c3 4 people, cr-2 c1 2 people, cr-3 c2 2 people, all r1 day+1 19:00).
 - m1 assigned r1; m2 assigned r2 for an ownership-negative check.
 - A released r1 slot for two people on reset day + 1 at 19:00.
 - r1 queue at reset: 1 called + 6 waiting parties (plus seated/cancelled history); #6 is the app
@@ -94,6 +95,6 @@ People and operational records are fictional; restaurants r1-r3 are real public 
 - A confirmed r1 reservation on reset day + 1 at 18:00 for late-arrival coordination.
 - Statistics fixture cells with both sufficient and insufficient samples.
 
-Scenario presets (clean-start and waiting-active implemented in Phase 2): clean-start, waiting-active, cancellation-ready, offer-active,
+Scenario presets (clean-start and waiting-active in Phase 2, cancellation-ready and offer-active in Phase 3): clean-start, waiting-active, cancellation-ready, offer-active,
 payment-unknown, late-ready. Build presets only when their phase is implemented.
 A preset creates a coherent snapshot, not a visual-only screen override.

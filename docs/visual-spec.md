@@ -143,6 +143,24 @@ follows CatchTable's store dashboard help screenshots. Measured or chosen values
   - A called row is tinted #FFF7F3.
   - The app's navy seat-type cards are omitted (this demo has a single 매장 식사 queue).
 
+## Cancellation-seat queue (Phase 3, provisional)
+
+There is no capture of the app's 빈자리 알림, and online sources are text only. These To-Be screens reuse
+the captured language: bottom sheets, chips, outlined cards, #FFF0EB/#FFF7F3 orange tints for
+"your turn", and orange (#C93000) status text.
+- Booking sheet: sold-out times sit in time order between open ones. They use #F4F4F4 with a "마감"
+  tag; after joining, a brand border and an orange "대기 중" tag. Sold-out days stay selectable and are
+  struck through in #767676.
+- Join sheet: condition card with "같은 조건 … 번째" in #C93000, then three check-mark rules.
+- 빈자리 대기 cards: 56px photo, status line, name, condition, request ID. An offered card gets a 2px
+  brand outline and a #FFF0EB deadline line.
+- 우선 예약 기회: "빈자리가 생겼어요!" at 24px/800; a countdown card in #FFF7F3 with a 44px/800
+  tabular timer and the absolute deadline under it. The timer has role=timer and no live
+  announcements.
+- 나의 알림: rows with a 40px round tinted icon; unread rows are tinted #FFF7F3.
+- Manager 예약 · 빈자리: plain white tables in the dashboard palette, with orange (held/offered) and
+  blue #1F5FD1 on #E8F1FD (available/queued) status pills.
+
 ## Reference inventory
 
 See `reference-screens/README.md` for the per-file inventory and missing references.
@@ -162,5 +180,7 @@ the same palette.
 | customer/saved.html | 173436 | 390x844, 360x780 | Matches header (저장/추천, badge, 새 컬렉션), collections, 저장한 매장 N, 함께고르기, picker bar, sort chips, entries with photos and date chips. Lists the demo customer's saves, not the capture's. "추천" grey darkened to 4.5:1 | Checked 2026-10-23 |
 | customer/waiting-register.html, waiting.html (Phase 2) | 183123, 183234, 183410, 183416, 183450; velog postpone/cancel screenshots | 390x844, 360x780 | Steppers, confirm card, rules box, registered sheet, ticket card, notice, cancel dialog, postpone list and confirm sheet match. Not reproduced: ads, "주변 맛집" map, KakaoTalk live-activity CTA (실시간 순서 함께 확인하기 → 확인). To-Be: ticket strip on the detail page | Checked 2026-10-23 |
 | manager/waiting.html (Phase 2) | CatchTable dashboard help screenshots (channel.io) | 1440x900, 1024x768 | 접수 switch, totals, tabs, columns and 호출/착석/취소 colours match. Seat-type cards, 3-second undo and 되돌리기 omitted; 웨이팅 등록 explains it is not in the demo | Checked 2026-10-23 |
+| customer/cancellation-queue.html, offer.html, inbox.html; booking sheet sold-out times (Phase 3) | none (provisional, see above) | 390x844, 360x780 | Consistent with the captured sheets, cards and chips; no overflow at 360px | Checked 2026-10-23 |
+| manager/reservations.html (Phase 3) | none (dashboard palette) | 1440x900, 1024x768 | Allocation tables; no overflow at 1024px | Checked 2026-10-23 |
 | customer/my-dining.html | 173505, 173513, 173524 | 390x844, 360x780 | Matches title, 나의 예약/나의 알림 underline tabs, filled filter chips, empty-state copy and button. Benefit banner and personal recommended searches omitted | Checked 2026-10-23 |
 | customer/restaurant.html (fidelity pass) | 183144, 183200, 183347, 183357, 183425, 183433 | 390x844, 360x780, side-by-side image | Matches header icons and scrolled title, photo carousel, Blue Ribbon chip, name + 함께 고르기, rating row, subway badges, info rows, tag chips, tabs, coupon, segmented control, date chips, 예약 오픈 일정, AI summary, save/phone/CTA bar. Not reproduced: "N명이 보고 있어요" (fake live data), app-install banner. Picker sheet, menu/review/info sections and statistics are provisional until captured | Checked 2026-10-23 |

@@ -8,6 +8,7 @@ import { icon } from '../ui/icons.js';
 import { notInDemo } from '../ui/toast.js';
 import { bottomNav } from '../ui/bottom-nav.js';
 import { restaurantCard, imageUrl } from '../ui/restaurant.js';
+import { unreadCount } from '../services/notification.js';
 
 const D = STRINGS.discovery;
 const FILTERS = {
@@ -41,6 +42,13 @@ function setFilter(value) {
 
 const iconButton = (name, label) => h('button', { class: 'icon-button', type: 'button', 'aria-label': label, onclick: notInDemo }, icon(name));
 
+// The bell opens 나의 알림; a dot marks unread notifications (the app's red dot, 161246)
+function notificationsLink() {
+  const unread = unreadCount(getState());
+  return h('a', { class: 'icon-button bell-link', href: pageUrl('customer/inbox.html'), 'aria-label': unread ? `${D.notifications} (${unread})` : D.notifications },
+    icon('bell'), unread > 0 && h('span', { class: 'bell-link__dot', 'aria-hidden': 'true' }));
+}
+
 function homeHeader() {
   return h('header', { class: 'home-header' },
     h('a', { class: 'home-header__logo', href: pageUrl('index.html'), 'aria-label': D.hubLink },
@@ -48,7 +56,7 @@ function homeHeader() {
     h('a', { class: 'search-field', href: pageUrl('customer/search.html') },
       icon('search'), h('span', { class: 'search-field__placeholder' }, D.searchPlaceholder)),
     iconButton('history', D.history),
-    iconButton('bell', D.notifications));
+    notificationsLink());
 }
 
 function brandTabs() {

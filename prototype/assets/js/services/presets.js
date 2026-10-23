@@ -1,6 +1,24 @@
 // Presenter scenario presets. Each one starts from a fresh reset (new scenario epoch) and then
 // builds a coherent snapshot through the store; none is a visual-only override.
 import { commit, resetDemo } from '../core/store.js';
+import { addDays } from '../core/format.js';
+import { releaseSlot } from './allocation.js';
+
+const HOUR_MS = 60 * 60 * 1000;
+
+// Cancellation-seat queue for 월화식당 tomorrow 19:00 (sold out in the fixture). c3 applied first
+// but for 4 people, so a 2-person slot skips c3 and goes to c1, then c2 (data-model fixture set).
+function seedCancellationQueue(state) {
+  const condition = { restaurantId: 'r1', serviceDate: addDays(state.meta.baseDate, 1), serviceTime: '19:00' };
+  const resetMs = Date.parse(state.meta.resetAt);
+  [['c3', 4, 3], ['c1', 2, 2], ['c2', 2, 1]].forEach(([customerId, partySize, hoursAgo], index) => {
+    state.cancellationRequests.push({
+      id: `cr-${index + 1}`, customerId, ...condition, partySize,
+      requestedAt: new Date(resetMs - hoursAgo * HOUR_MS).toISOString(), status: 'QUEUED', offerId: null, endedAt: null,
+    });
+  });
+  return condition;
+}
 
 const PRESETS = {
   clean: () => ({ ok: true }),
@@ -10,6 +28,13 @@ const PRESETS = {
     Object.assign(ticket, { customerId: 'c1', guest: null });
     state.meta.activeCustomerId = 'c1';
   }),
+  cancellationReady: () => commit((state) => { seedCancellationQueue(state); }),
+  // As cancellationReady, then one 2-person slot is released: c1 holds a live exclusive offer.
+  offerActive: () => {
+    let condition = null;
+    const seeded = commit((state) => { condition = seedCancellationQueue(state); });
+    return seeded.ok ? releaseSlot({ ...condition, partySize: 2 }) : seeded;
+  },
 };
 
 export const PRESET_KEYS = Object.keys(PRESETS);

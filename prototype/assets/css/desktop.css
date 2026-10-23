@@ -111,3 +111,21 @@ body.desktop { background: var(--color-surface-muted); accent-color: var(--color
 .mgr-action:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
 .mgr-ended { color: var(--color-text-secondary); font-size: var(--font-body); }
 .mgr-empty { margin-top: var(--space-5); padding: var(--space-8); border-radius: var(--radius-lg); background: var(--color-bg); color: var(--color-text-secondary); text-align: center; }
+
+/* Manager navigation and the M01 allocation section */
+.mgr-header { flex-wrap: wrap; }
+.mgr-nav { display: flex; gap: var(--space-2); margin-left: auto; }
+.mgr-nav__link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-4); border-radius: var(--radius-pill); color: var(--color-text-secondary); font-weight: 700; text-decoration: none; }
+.mgr-nav__link[aria-current="page"] { background: var(--color-ink); color: #FFFFFF; }
+.mgr-section { margin-top: var(--space-8); }
+.mgr-section__title { font-size: var(--font-section); font-weight: 700; }
+.mgr-section__hint { margin-top: var(--space-1); color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.mgr-grid { width: 100%; margin-top: var(--space-4); border-collapse: collapse; border-radius: var(--radius-lg); background: var(--color-bg); overflow: hidden; }
+.mgr-grid th { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: var(--font-body-sm); font-weight: 600; text-align: left; }
+.mgr-grid td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); font-size: var(--font-body); vertical-align: middle; }
+.mgr-grid tr:last-child td { border-bottom: 0; }
+.mgr-grid td > strong, .mgr-grid td > .mgr-sub { display: block; }
+.mgr-sub { color: var(--color-text-secondary); font-size: 13px; }
+.mgr-status { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-pill); background: var(--color-chip); color: var(--color-chip-text); font-size: 13px; font-weight: 700; }
+.mgr-status--held, .mgr-status--offered { background: var(--color-brand-soft); color: var(--color-primary-text); }
+.mgr-status--available, .mgr-status--queued { background: #E8F1FD; color: #1F5FD1; }

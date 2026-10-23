@@ -11,6 +11,7 @@ import { activeQueue, queueSummary, managerRestaurant, callTicket, seatTicket, m
 import { h } from '../ui/dom.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast, notInDemo } from '../ui/toast.js';
+import { managerHeader } from '../ui/manager-header.js';
 
 const T = STRINGS.manager;
 const app = document.getElementById('app');
@@ -99,11 +100,7 @@ function render() {
 
   const rows = lists[tab];
   app.replaceChildren(h('main', { class: 'mgr' },
-    h('header', { class: 'mgr-header' },
-      h('div', { class: 'mgr-header__title' },
-        h('img', { src: pageUrl('assets/images/logo.svg'), alt: '', width: 32, height: 32 }),
-        h('div', {}, h('h1', {}, restaurant.name), h('p', {}, T.managerLine(manager)))),
-      h('a', { class: 'mgr-header__hub', href: pageUrl('index.html') }, T.hubLink)),
+    managerHeader(restaurant, manager, 'waiting'),
     h('div', { class: 'mgr-toolbar' },
       toggle,
       h('p', { class: 'mgr-stat' }, h('span', {}, T.total), h('strong', {}, T.totalValue(summary.teams, summary.people))),

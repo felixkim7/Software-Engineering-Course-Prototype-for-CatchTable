@@ -1,19 +1,87 @@
 # Development Progress
 
-Current phase: Phase 2 COMPLETE (2026-10-23), after Phase 1 and two visual-fidelity passes.
-Next authorized candidate: Phase 3, which starts only on an explicit user request.
+Current phase: Phase 3 COMPLETE (2026-10-23).
+Next authorized candidate: Phase 4, which starts only on an explicit user request.
 
 | Phase | Status | Verification evidence |
 |---|---|---|
 | 0 Foundation | Complete | 38/38 headless Edge checks, 12/12 self-check page, 2 extra store checks (2026-10-23); 38/38 regression rerun after Phase 1 |
 | 1 Discovery and statistics | Complete | 40/40 headless Edge checks, 17/17 self-check page, accessible-name and contrast checks (2026-10-23); after the 49-capture pass: 52/52 acceptance checks, 20/20 self-check page |
 | 2 Waiting | Complete | 22/22 Phase 2 acceptance (W01-W08), 26/26 self-check page, 52/52 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
-| 3 Cancellation queue | Not started | None |
+| 3 Cancellation queue | Complete | 16/16 Phase 3 acceptance (Q01-Q08 through the UI), 35/35 self-check page, 22/22 Phase 2, 53/53 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 4 Priority booking | Not started | None |
 | 5 Late arrival | Not started | None |
 | 6 Integration | Not started | None |
 
-## Current session (2026-10-23, Phase 2: waiting registration, visible state, management)
+## Current session (2026-10-23, Phase 3: cancellation requests, allocation, exclusive offers)
+
+- Request: "now go with phase 3".
+- References: there are no captures of 빈자리 알림, and web sources are text only (listed in
+  reference-screens/README.md). They describe the As-Is broadcast race. The To-Be screens are
+  provisional and use the captured visual language (visual-spec.md).
+
+**Files**
+- New:
+  - `services/allocation.js`: matching, FIFO, offers, decline/withdraw, `reconcileOffers`, `releaseSlot`;
+  - `services/notification.js`;
+  - `ui/cancellation-ui.js`: condition labels, join sheet, detail strips;
+  - `ui/manager-header.js`;
+  - `pages/cancellation-queue.js` + `customer/cancellation-queue.html` (C04);
+  - `pages/offer.js` + `customer/offer.html` (C05);
+  - `pages/inbox.js` + `customer/inbox.html` (C09);
+  - `pages/manager-reservations.js` + `manager/reservations.html` (M01);
+  - `css/cancellation.css`.
+- Changed:
+  - config (offer lifetime);
+  - seed (`failNextNotification`);
+  - booking service: `soldOut` flag; an AVAILABLE released slot reopens its time;
+  - booking panel: sold-out days selectable, sold-out times tappable;
+  - restaurant.js: strips, join, reconcile;
+  - waiting.js: a call creates a notification;
+  - presets: cancellationReady, offerActive;
+  - hub: release form, notification failure/retry, reconcile after a clock jump, new links;
+  - 마이다이닝: 빈자리 대기 entry, 나의 알림 tab;
+  - home bell: inbox link with unread dot;
+  - strings, CSS;
+  - tests/self-check.js: 9 queue checks.
+
+**Behaviour**
+- Requests: one live request per customer per exact condition. Open, past or out-of-window times and party sizes over the maximum are refused.
+- A released slot unit is offered to the earliest QUEUED request with the same restaurant, date, time and party (requestedAt, then id). It is held for 120 s against an absolute expiresAt.
+- Live means now < expiresAt.
+- Decline, expiry or withdrawal of an offered request ends it and runs allocation once more. With nobody eligible, the slot becomes AVAILABLE and that time is bookable again.
+- Only the owner can see or act on an offer. 예약하기 explains that checkout is Phase 4, and the offer is never marked accepted.
+
+**Evidence** (headless Edge via playwright-core in the session scratchpad, server `python -m http.server 5577`)
+- Phase 3 acceptance 16/16:
+  - join from a sold-out time, shown in time order with a hint;
+  - duplicate prevented;
+  - the detail strip before any click;
+  - Q01 hub release goes to c1, skipping the older 4-person c3;
+  - the manager view shows the same cr-/of- IDs;
+  - Q04 reload after +30 s continues the same deadline;
+  - checkout explained;
+  - Q03 a non-owner sees nothing and changes nothing;
+  - Q05 decline gives one successor, shown live to c2 and the manager;
+  - Q05/Q07 expiry by clock gives AVAILABLE and the time reopens, with c2 notified;
+  - Q02 repeated reconcile;
+  - Q08 a failed notification stays visible in the app, retry delivers it to the inbox and bell;
+  - withdraw hands on, and rejoining creates a new request;
+  - no overflow (360px, 1024px);
+  - no console errors.
+- Self-check 35/35, including Q01-Q08 domain checks and the deadline boundary (now == expiresAt is expired).
+- Regressions: Phase 2 22/22, fidelity 53/53, Phase 0 38/38. Updated for intended changes: the home bell and 나의 알림 are now links, and there are 4 presets.
+- No unnamed controls on C04, C05, C09, 마이다이닝, detail, home, hub or M01. Contrast computed for the new pairs (all at least 4.5:1).
+
+**Unverified**
+- Real devices and screen readers.
+- Concurrent writers: one active writer tab is the supported model. Reconcile runs from whichever page is open, so with no page open nothing expires until one is opened. Pages reconcile on load.
+- QR-08 timing: the next offer is created within the reconcile interval (1 s on C05/M01, 5 s elsewhere); not measured.
+
+**Open items**
+- Booking date chips on the detail page are computed when the page loads (the calendar re-reads), so a reopened time shows in the chips after a reload.
+
+## Phase 2 session record (2026-10-23)
 
 - Request: use the velog post the user supplied (웨이팅 미루기 lets you choose how many teams back) and
   web screenshots for screens not captured, then continue with Phase 2.
@@ -485,3 +553,8 @@ Append a short entry at the end of each session. Do not delete prior findings.
   - 22/22 Phase 2, 26/26 self-check, 52/52 fidelity, 38/38 Phase 0.
   - Nothing committed.
   - Suggested commit: `phase-2: waiting registration, visible ticket on detail, postpone/cancel, manager queue`.
+- 2026-10-23, Phase 3:
+  - Cancellation-seat requests from sold-out times, FIFO exclusive offers with absolute deadlines, decline/expiry/withdraw handoff, 빈자리 대기 / 우선 예약 기회 / 나의 알림 pages, manager 예약 · 빈자리, hub release and notification-failure tools.
+  - 16/16 Phase 3, 35/35 self-check, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0.
+  - Nothing committed.
+  - Suggested commit: `phase-3: cancellation-seat queue, FIFO exclusive offers, inbox and manager allocation view`.

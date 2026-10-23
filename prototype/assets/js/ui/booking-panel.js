@@ -1,8 +1,11 @@
 // Booking area of the detail page and its sheets, following the app captures:
 // date chips (183347/173157), the 날짜·인원·시간 sheet (171404: calendar, party chips, available
 // times, 닫기) and the visit confirmation (171732). Availability is MOCK (services/booking.js).
+// To-Be (Phase 3): sold-out days stay selectable and sold-out times are listed after the open
+// ones; tapping one starts a cancellation-seat request (빈자리 대기) via `onSoldOut`.
 import { STRINGS } from '../core/strings.js';
 import { addDays, formatClockTime, formatShortDate, seoulDateKey, weekdayOf } from '../core/format.js';
+import { getState } from '../core/store.js';
 import { bookingDates, bookingTimes } from '../services/booking.js';
 import { h } from './dom.js';
 import { icon } from './icons.js';
@@ -10,6 +13,7 @@ import { notInDemo } from './toast.js';
 import { openSheet } from './sheet.js';
 
 const B = STRINGS.booking;
+const C = STRINGS.cancellation;
 const DEFAULT_PARTY = 2;
 const CHIP_DAYS = 14;
 const weekdayName = (dateKey) => STRINGS.weekdays[weekdayOf(dateKey)];
@@ -30,9 +34,10 @@ function openScheduleBlock(schedule) {
 
 /**
  * Returns { element, schedule, openPicker, openConfirm, getSelection }.
- * `onConfirm(selection)` runs when the visit confirmation is accepted.
+ * `onConfirm(selection)` runs when the visit confirmation is accepted. `onSoldOut(condition)`
+ * runs for a tapped sold-out time; `isJoined(condition)` marks times already requested.
  */
-export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm }) {
+export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm, onSoldOut, isJoined = () => false }) {
   const todayKey = seoulDateKey(nowMs);
   const { maxPartySize, windowDays } = restaurant.booking;
   const lastKey = addDays(todayKey, windowDays - 1);
@@ -84,6 +89,7 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm }) {
     const grid = h('div', { class: 'calendar__grid' });
     const partyRow = h('div', { class: 'party-chips', role: 'group', 'aria-label': B.partyLegend });
     const timeRow = h('div', { class: 'time-chips', role: 'group', 'aria-label': B.timesLegend });
+    const soldOutHint = h('p', { class: 'sheet-hint', hidden: true }, C.soldOutHint);
 
     function shiftMonth(step) {
       const [year, mon] = month.split('-').map(Number);
@@ -102,10 +108,11 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm }) {
       grid.replaceChildren(...STRINGS.weekdays.map((day) => h('span', { class: 'calendar__weekday', 'aria-hidden': 'true' }, day)),
         ...Array.from({ length: 42 }, (_, index) => {
           const key = addDays(start, index);
+          const inWindow = key >= todayKey && key <= lastKey;
           const open = availability.get(key) === true;
-          const dayState = key < todayKey || key > lastKey ? null : open ? B.available : B.soldOut;
+          const dayState = !inWindow ? null : open ? B.available : B.soldOut;
           return h('button', {
-            class: 'calendar__day', type: 'button', disabled: !open, 'aria-pressed': String(key === dateKey),
+            class: `calendar__day${inWindow && !open ? ' is-soldout' : ''}`, type: 'button', disabled: !inWindow, 'aria-pressed': String(key === dateKey),
             'aria-label': B.dayLabel(Number(key.slice(5, 7)), Number(key.slice(8)), weekdayName(key), dayState),
             onclick: () => { dateKey = key; renderCalendar(); renderTimes(); },
           }, String(Number(key.slice(8))));
@@ -115,18 +122,28 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm }) {
     function renderParty() {
       partyRow.replaceChildren(...Array.from({ length: maxPartySize }, (_, index) => index + 1).map((count) => h('button', {
         class: 'party-chip', type: 'button', 'aria-pressed': String(count === party),
-        onclick: () => { party = count; renderParty(); },
+        onclick: () => { party = count; renderParty(); renderTimes(); },
       }, B.partyCount(count))));
     }
 
     function renderTimes() {
-      const open = bookingTimes(state, restaurant, dateKey, nowMs).filter((slot) => slot.available);
-      timeRow.replaceChildren(...(open.length
-        ? open.map((slot) => h('button', {
-          class: 'time-chip', type: 'button',
-          onclick: () => { dialog.close(); apply({ dateKey, party, time: slot.time }); openConfirm(); },
-        }, formatClockTime(slot.time)))
-        : [h('p', { class: 'sheet-empty' }, B.noTimes)]));
+      const slots = bookingTimes(getState(), restaurant, dateKey, nowMs).filter((slot) => slot.available || (slot.soldOut && onSoldOut));
+      const chip = (slot) => {
+        const label = formatClockTime(slot.time);
+        if (slot.available) {
+          return h('button', { class: 'time-chip', type: 'button', onclick: () => { dialog.close(); apply({ dateKey, party, time: slot.time }); openConfirm(); } }, label);
+        }
+        const condition = { restaurantId: restaurant.id, serviceDate: dateKey, serviceTime: slot.time, partySize: party };
+        const joined = isJoined(condition);
+        return h('button', {
+          class: `time-chip time-chip--soldout${joined ? ' is-joined' : ''}`, type: 'button',
+          'aria-label': joined ? C.joinedLabel(label) : C.soldOutLabel(label),
+          onclick: () => { dialog.close(); onSoldOut(condition); },
+        }, label, h('span', { class: 'time-chip__tag' }, joined ? C.joinedTag : C.soldOutTag));
+      };
+      // Chronological, sold-out times included (To-Be), so they sit where the customer looks
+      timeRow.replaceChildren(...(slots.length ? slots.map(chip) : [h('p', { class: 'sheet-empty' }, B.noTimes)]));
+      soldOutHint.hidden = !slots.some((slot) => slot.soldOut);
     }
 
     renderCalendar();
@@ -143,6 +160,7 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm }) {
           grid),
         partyRow,
         timeRow,
+        soldOutHint,
       ],
       footer: h('button', { class: 'button button--block', type: 'button', onclick: () => dialog.close() }, B.close),
     });
