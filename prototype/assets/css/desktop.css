@@ -1,0 +1,62 @@
+/* Desktop pages: presenter hub (and, from Phase 2, the manager workspace) */
+body.desktop { background: var(--color-surface-muted); accent-color: var(--color-primary); }
+
+.hub {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+.hub > * + * { margin-top: var(--space-5); }
+.hub > .notice { border: 1px solid var(--color-divider); background: var(--color-bg); }
+
+.hub-header { display: flex; align-items: center; gap: var(--space-3); }
+.hub-header__eyebrow { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.hub-header__title { font-size: var(--font-title); font-weight: 700; }
+
+.hub-banner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.hub-banner[hidden] { display: none; }
+
+.hub-grid { display: grid; gap: var(--space-5); }
+@media (min-width: 760px) {
+  .hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+
+.hub-panel {
+  padding: var(--space-6);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+.hub-panel > * + * { margin-top: var(--space-4); }
+.hub-panel__title { font-size: var(--font-header); font-weight: 700; }
+
+.hub-facts { display: grid; gap: var(--space-2); }
+.hub-facts > div { display: flex; justify-content: space-between; gap: var(--space-4); }
+.hub-facts dt { color: var(--color-text-secondary); }
+.hub-facts dd { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+.hub-field { display: grid; gap: var(--space-1); }
+.hub-field > label,
+.hub-field > legend { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.hub-field select {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+.hub-radios { display: flex; gap: var(--space-5); }
+.hub-radios label { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; }
+.hub-radios input { width: 18px; height: 18px; margin: 0; }
+
+.hub-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.hub-list li:last-child { border-bottom: 0; }
+.hub-list a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.hub-hint { color: var(--color-text-secondary); font-size: var(--font-body-sm); }

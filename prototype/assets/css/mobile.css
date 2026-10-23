@@ -1,0 +1,18 @@
+/* Customer pages: phone-width column, centered on wide screens */
+body.mobile { background: var(--color-surface-muted); }
+
+.mobile-shell {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--customer-max-width);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--color-bg);
+}
+
+.mobile-content { flex: 1; padding-bottom: var(--space-6); }
+
+.mobile-section { padding: var(--space-6) var(--gutter); }
+.mobile-section > * + * { margin-top: var(--space-4); }
+.mobile-section__title { font-size: var(--font-section); font-weight: 700; }
