@@ -70,6 +70,7 @@ not reproduced either.
 | 173449 | 저장 tab scrolled (same layout; *personal*) | Saved page |
 | 173505 | 마이다이닝 나의 예약 / 방문예정 empty state "예약한 매장이 없어요. 가까운 맛집을 지금 찾아보세요!" + orange button; recommended searches card (*personal* title) | My-dining |
 | 173513, 173524 | 마이다이닝 방문완료 and 취소/노쇼 filters. *personal*: visit history including a past 현장웨이팅 ticket | My-dining; Phase 2 visited state |
+| 220751 | MY tab: profile (수정), 팔로워/팔로잉, 캐치미식가 배지, CATCH pay banner, 포인트 / 쿠폰함 / 저장 / 최근 본 매장, 생일·기념일 등록, 전화 예약 관리, benefit banner, 도움돼요 누른 리뷰, 내가 쓴 리뷰. *personal*: account name, own review and photo | Phase 6 MY tab |
 | 173602 | Another restaurant's waiting area: 웨이팅 queue by party size (1인 / 2인 / 3인 이상), "요일별 평균 웨이팅 시간 Beta" line chart with tooltip "평균 10팀 \| 16분", weekday circles with "대기 많음" | Statistics chart; Phase 2 queue list |
 
 ## Online references (not stored in the repo)
@@ -91,6 +92,8 @@ kept outside the repository (third-party copyright); nothing from them is shippe
 | Search 2026-10-23 for 캐치테이블 빈자리 알림 (gogumafarm.kr, acoustic42.com, enolja.com, carfinance.co.kr, velog k-skill notes) | Text only, no usable screenshots: alerts are set per restaurant/date/time, everyone alerted races to book ("by the time you open it, it is gone") | As-Is evidence for Phase 3; its To-Be screens are provisional |
 
 | Search 2026-10-23 for the reservation-complete and reservation-detail screens (CatchTable store help "STEP 4 예약 관리하기", etoday 2024 CATCH pay article, haniseoul global guide) | Text only: paying the deposit confirms the booking; no customer screenshots | C07 is provisional (built from 183416 and 171752) |
+
+| Search 2026-10-23 for a CatchTable late-arrival / ETA feature (App Store listings, brunch, mwm.ai app summaries) | None exists; customers phone the store, the closest feature is 웨이팅 미루기 | Phase 5 screens are provisional (To-Be feature) |
 
 **웨이팅 미루기 resolved (2026-10-23).** The user pointed to the velog post: the customer chooses how far
 back to move ("N번째로 미루기"), at most twice, never after being called. decisions.md now follows it.

@@ -4,6 +4,7 @@ import { commit, getState, resetDemo } from '../core/store.js';
 import { addDays } from '../core/format.js';
 import { releaseSlot } from './allocation.js';
 import { REQUIRED_CONSENTS, setPaymentFlag, startCheckout } from './payment.js';
+import { submitEta } from './late-arrival.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -45,6 +46,8 @@ const PRESETS = {
     setPaymentFlag('deferNextPayment', true);
     return startCheckout(offer.id, { consents: REQUIRED_CONSENTS, purposes: [], requestNote: '' });
   },
+  // c1 reports arriving at 18:30 for the seeded rv-1 (tomorrow 18:00): waiting for the manager (L01).
+  lateReady: () => submitEta('rv-1', '18:30', '교통 체증'),
 };
 
 export const PRESET_KEYS = Object.keys(PRESETS);

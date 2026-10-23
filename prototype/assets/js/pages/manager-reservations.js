@@ -12,6 +12,7 @@ import { reconcile } from '../services/reconcile.js';
 import { managerRestaurant } from '../services/waiting.js';
 import { h } from '../ui/dom.js';
 import { managerHeader } from '../ui/manager-header.js';
+import { coordinationFor } from '../services/late-arrival.js';
 import { clockOf, conditionText, formatRemaining } from '../ui/cancellation-ui.js';
 
 const A = STRINGS.allocation;
@@ -53,7 +54,18 @@ function reservationRow(state, reservation) {
     h('td', {}, conditionText({ serviceDate: reservation.serviceDate, serviceTime: reservation.currentTime, partySize: reservation.partySize })),
     h('td', {}, reservation.depositKRW ? formatKRW(reservation.depositKRW) : '–'),
     h('td', {}, reservation.sourceOfferId ? [h('strong', {}, A.source.priority), h('span', { class: 'mgr-sub' }, reservation.sourceOfferId)] : A.source.normal),
-    h('td', {}, h('span', { class: 'mgr-status mgr-status--booked' }, A.reservationStatus[reservation.status])));
+    h('td', {}, h('span', { class: 'mgr-status mgr-status--booked' }, A.reservationStatus[reservation.status])),
+    h('td', {}, lateCell(state, reservation)));
+}
+
+// Late-arrival badge (M01 list) with a link to the M03 detail where the manager answers.
+function lateCell(state, reservation) {
+  const record = coordinationFor(state, reservation.id);
+  const L = STRINGS.late;
+  return [
+    record && h('span', { class: `mgr-status mgr-status--late-${record.status.toLowerCase()}` }, L.badge[record.status]),
+    h('a', { class: 'mgr-link', href: pageUrl('manager/reservation.html', { reservationId: reservation.id }), 'aria-label': `${reservation.id} ${L.open}` }, L.open),
+  ];
 }
 
 function requestRow(state, request) {

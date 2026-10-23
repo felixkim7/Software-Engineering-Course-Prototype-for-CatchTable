@@ -136,3 +136,11 @@
   transition: opacity 0.2s, transform 0.2s;
 }
 .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* Late-arrival history: identical on the customer (C07) and manager (M03) pages */
+.late-history__title { margin-bottom: var(--space-2); font-size: var(--font-body); font-weight: 700; }
+.late-history ol { display: grid; gap: var(--space-2); }
+.late-history__item { display: grid; gap: 2px; padding: var(--space-2) var(--space-3); border-left: 3px solid var(--color-border); }
+.late-history__item--manager { border-left-color: var(--color-brand); }
+.late-history__meta { color: var(--color-text-secondary); font-size: 12px; }
+.late-history__text { font-size: var(--font-body-sm); font-weight: 600; }

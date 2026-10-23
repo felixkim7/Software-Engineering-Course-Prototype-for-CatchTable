@@ -1,6 +1,7 @@
 // C07 Reservation detail / confirmation. No capture of the app's reservation detail exists, so the
 // layout follows the 방문예정 ticket page (183416) and the checkout's refund table (171752).
-// Only the owner can open it. Phase 5 adds the late-arrival (ETA) section here.
+// Only the owner can open it. The late-arrival section (Phase 5) sends an ETA, shows the
+// restaurant's answer, lets the customer accept or reject a proposed time, and lists the history.
 import { STRINGS } from '../core/strings.js';
 import { getState, subscribe } from '../core/store.js';
 import { formatClockTime, formatKRW } from '../core/format.js';
@@ -10,8 +11,13 @@ import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { pageHeader } from '../ui/header.js';
 import { dateLabel } from '../ui/cancellation-ui.js';
+import { confirmDialog } from '../ui/modal.js';
+import { showToast } from '../ui/toast.js';
+import { coordinationFor, decideProposal, submitEta } from '../services/late-arrival.js';
+import { historyList, lateStatusCard, openEtaSheet } from '../ui/late-ui.js';
 
 const V = STRINGS.reservation;
+const L = STRINGS.late;
 const K = STRINGS.checkout;
 const app = document.getElementById('app');
 const reservationId = queryParam('reservationId');
@@ -30,6 +36,29 @@ function message(title, body) {
       h('h1', { class: 'empty-state__title' }, title),
       h('p', { class: 'text-secondary' }, body),
       h('a', { class: 'button button--primary', href: myDiningHref }, V.toMyDining)));
+}
+
+function lateSection(reservation) {
+  const record = coordinationFor(getState(), reservation.id);
+  const report = () => openEtaSheet(reservation, (eta, reason) => {
+    const result = submitEta(reservation.id, eta, reason);
+    showToast(result.ok ? L.submittedToast : STRINGS.errors[result.reason]);
+  });
+  async function decide(accept) {
+    const proposed = formatClockTime(record.proposedTime);
+    const confirmed = await confirmDialog(accept
+      ? { title: L.acceptTitle(proposed), message: L.acceptBody(formatClockTime(reservation.currentTime)), confirmLabel: L.acceptYes, cancelLabel: L.no }
+      : { title: L.rejectTitle, message: L.rejectBody, confirmLabel: L.rejectYes, cancelLabel: L.no });
+    if (!confirmed) return;
+    const result = decideProposal(reservation.id, record.version, accept);  // the version shown on screen
+    showToast(result.ok ? (accept ? L.acceptedToast : L.rejectedToast) : STRINGS.errors[result.reason]);
+  }
+  return h('section', { class: 'late', 'aria-labelledby': 'late-heading' },
+    h('h2', { class: 'late__title', id: 'late-heading' }, L.sectionTitle),
+    !record && h('p', { class: 'late__intro' }, L.intro),
+    record && lateStatusCard(record, { onAccept: () => decide(true), onReject: () => decide(false) }),
+    h('button', { class: 'button button--block', type: 'button', onclick: report }, icon('clock'), record ? L.update : L.report),
+    record && historyList(record));
 }
 
 function render() {
@@ -59,12 +88,14 @@ function render() {
             h('span', { class: 'reservation__number' }, V.number(reservation.id))),
           h('dl', { class: 'reservation-facts' },
             row(V.fields.date, dateLabel(reservation.serviceDate)),
-            row(V.fields.time, formatClockTime(reservation.currentTime)),
+            row(V.fields.time, reservation.currentTime === reservation.originalTime ? formatClockTime(reservation.currentTime)
+              : [formatClockTime(reservation.currentTime), h('span', { class: 'reservation__changed' }, L.timeChanged(formatClockTime(reservation.originalTime)))]),
             row(V.fields.party, K.people(reservation.partySize)),
             row(V.fields.purposes, reservation.purposes.length ? reservation.purposes.join(', ') : V.none),
             row(V.fields.request, reservation.requestNote || V.none),
             row(V.fields.deposit, deposit)),
           reservation.sourceOfferId && h('p', { class: 'reservation__source' }, icon('bell'), V.sourcePriority)),
+        reservation.status === 'CONFIRMED' && lateSection(reservation),
         h('section', { class: 'refund-table refund-table--card' },
           h('p', {}, V.refundTitle),
           h('dl', {}, K.refundTable.map(([when, rule]) => h('div', {}, h('dt', {}, when), h('dd', {}, rule)))))),

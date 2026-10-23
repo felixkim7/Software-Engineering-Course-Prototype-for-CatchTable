@@ -16,12 +16,12 @@ work under both a local server and a project subpath. Preserve IDs across naviga
 | C04 | customer/cancellation-queue.html | 빈자리 대기: live requests (rank among identical conditions, request ID), the current offer with deadline, withdraw, ended requests. Conditions are entered from the C02 booking sheet (sold-out time → join sheet) | 3 |
 | C05 | customer/offer.html?offerId=... | 우선 예약 기회: exclusive offer, countdown to the absolute deadline, owner check, decline, rejoin after it ends; 예약하기 explains checkout arrives in Phase 4 | 3-4 |
 | C06 | customer/checkout.html?offerId=... | As 171752: offer timer, 예약 정보, 방문 목적, 데모 카드, 총 결제 금액, 요청사항, consents with refund table; processing / unknown / recovery / refunded states. Reached from C05 via the 예약금 안내 sheet (171739) | 4 |
-| C07 | customer/reservation.html?reservationId=... | Confirmation banner (once), restaurant, 예약번호, date/time/party, purposes, request, deposit and payment ID, refund policy; ETA form and history in Phase 5 | 4-5 |
+| C07 | customer/reservation.html?reservationId=... | Confirmation banner (once), restaurant, 예약번호, date/time (with "변경됨 · 처음 예약" after an accepted change), party, purposes, request, deposit and payment ID; 늦게 도착할 것 같나요? section: ETA sheet, status card with accept/reject for a live proposal, update ETA, 조율 기록; refund policy | 4-5 |
 | C08 | customer/my-dining.html (방문예정) | Seeded and newly confirmed reservations, linking to C07. Served by the app's own 마이다이닝 나의 예약 list (173505) instead of a separate page | 4 |
 | C09 | customer/inbox.html | 나의 알림 (also the 마이다이닝 tab and the home bell): offers, expiries and waiting calls now; confirmations and late responses later | 3-5 |
 | M01 | manager/reservations.html | 예약 · 빈자리: released slots with holder/deadline/next in line, and the restaurant's requests in FIFO order (same IDs as C04); bookings join in Phase 4 | 3-5 |
 | M02 | manager/waiting.html | 접수중/접수마감 switch, totals, 웨이팅 중 / 착석 / 취소 tabs, rows with 호출 / 착석 / 취소 for the active manager's restaurant only | 2 |
-| M03 | manager/reservation.html?reservationId=... | Booking + ETA, retain/propose/cannot-retain actions and final history | 5 |
+| M03 | manager/reservation.html?reservationId=... | Booking (original and current time) + current ETA version, 예약 유지 / 시간 변경 제안 / 유지 어려움, the same 조율 기록 as C07; only the restaurant's manager. Linked from the M01 예약 목록 지각 조율 badge | 5 |
 
 Modal/sheet variants are states of these pages, not mandatory new HTML files.
 Provide navigation/back/empty/not-found behavior on every implemented route.

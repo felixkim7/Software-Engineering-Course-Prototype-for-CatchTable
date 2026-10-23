@@ -184,6 +184,16 @@ the captured language: bottom sheets, chips, outlined cards, #FFF0EB/#FFF7F3 ora
 - State screens (processing with a spinner, unknown, recovery, refunded) are centred text blocks with one action. The spinner respects reduced motion.
 - Reservation detail (provisional): a confirmation badge (check on #FFF0EB) shown once, then the 방문예정 ticket layout with a fact list and the refund table.
 
+## Late-arrival coordination (Phase 5, provisional)
+
+CatchTable has no such feature, so there is no reference. The screens reuse the captured language.
+- C07: a white "늦게 도착할 것 같나요?" card in the 방문예정 band.
+- ETA sheet: 2-column time chips ("오후 6:30 (30분 늦음)"), selected = brand border on #FFF0EB; reason chips like 방문 목적.
+- Status card: grey for waiting, retained or decided states, #FFF7F3 with #C93000 title for a proposal or "cannot retain". Accept / reject buttons are outlined / primary.
+- A changed time shows "변경됨 · 처음 예약 …" in #C93000 under the new time.
+- 조율 기록: the same ordered list on both roles, version · actor · timestamp over the action. Customer entries have a grey left rule, restaurant entries an orange one.
+- M03: dashboard palette. Facts grid; 예약 유지 (#5C63D6), a time select plus 시간 변경 제안 (#00897B), and 유지 어려움 (#D63A52, with confirmation) as 64px buttons.
+
 ## Reference inventory
 
 See `reference-screens/README.md` for the per-file inventory and missing references.
@@ -206,6 +216,7 @@ the same palette.
 | customer/cancellation-queue.html, offer.html, inbox.html; booking sheet sold-out times (Phase 3) | none (provisional, see above) | 390x844, 360x780 | Consistent with the captured sheets, cards and chips; no overflow at 360px | Checked 2026-10-23 |
 | customer/offer.html deposit sheet, checkout.html (Phase 4) | 171739, 171752 | 390x844, 360x780 | Matches the sheet and the checkout structure; demo card and button instead of CATCH pay and the slide control; no overflow at 360px | Checked 2026-10-23 |
 | customer/reservation.html (Phase 4) | none (183416 layout) | 390x844, 360x780 | Provisional | Checked 2026-10-23 |
+| customer/reservation.html late section, manager/reservation.html (Phase 5) | none (provisional) | 390x844, 360x780; 1440x900, 1024x768 | Identical history on both roles; no overflow | Checked 2026-10-23 |
 | manager/reservations.html (Phase 3) | none (dashboard palette) | 1440x900, 1024x768 | Allocation tables; no overflow at 1024px | Checked 2026-10-23 |
 | customer/my-dining.html | 173505, 173513, 173524 | 390x844, 360x780 | Matches title, 나의 예약/나의 알림 underline tabs, filled filter chips, empty-state copy and button. Benefit banner and personal recommended searches omitted | Checked 2026-10-23 |
 | customer/restaurant.html (fidelity pass) | 183144, 183200, 183347, 183357, 183425, 183433 | 390x844, 360x780, side-by-side image | Matches header icons and scrolled title, photo carousel, Blue Ribbon chip, name + 함께 고르기, rating row, subway badges, info rows, tag chips, tabs, coupon, segmented control, date chips, 예약 오픈 일정, AI summary, save/phone/CTA bar. Not reproduced: "N명이 보고 있어요" (fake live data), app-install banner. Picker sheet, menu/review/info sections and statistics are provisional until captured | Checked 2026-10-23 |

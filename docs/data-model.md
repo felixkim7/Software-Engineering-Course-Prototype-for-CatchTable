@@ -17,7 +17,7 @@
 | Reservation | id (`rv-n`), customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status (CONFIRMED), sourceOfferId, paymentOperationId, purposes[], requestNote, createdAt |
 | WaitingTicket | id (`w-<restaurant>-<number>`), customerId (null for other parties), guest (fictional masked phone), restaurantId, ticketNumber, channel (app/onsite/manual), party {adults, infants}, partySize, queueOrder, status, postponementCount, callCount, registeredAt, calledAt, endedAt, endedBy |
 | WaitingStatistic | restaurantId, weekday, timeSlot, avgMinutes, avgTeams, sampleCount, periodStart, periodEnd, updatedAt |
-| LateCoordination | id, reservationId, version, expectedArrival, status, proposedTime, history[] |
+| LateCoordination | id (`lc-n`), reservationId (one record per reservation), version, expectedArrival, reason, status, proposedTime, submittedAt, respondedAt, decidedAt, history[{version, at, actor customer/manager, actorId, action, eta/proposedTime/previousTime}] |
 | Notification | id (`nt-n`), recipientType, recipientId, entityType (offer/waitingTicket), entityId, kind (OFFER_ISSUED/OFFER_EXPIRED/WAITING_CALLED), data (display facts), deliveryStatus (SENT/FAILED), attempts, readAt, createdAt |
 | StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, resetAt, baseDate, activeRole, activeCustomerId, activeManagerId, failNextNotification, failNextPayment, deferNextPayment, failNextCommit |
 
@@ -96,6 +96,6 @@ People and operational records are fictional; restaurants r1-r3 are real public 
 - A confirmed r1 reservation on reset day + 1 at 18:00 for late-arrival coordination (rv-1, seeded since Phase 4).
 - Statistics fixture cells with both sufficient and insufficient samples.
 
-Scenario presets (clean-start and waiting-active in Phase 2, cancellation-ready and offer-active in Phase 3, payment-unknown in Phase 4): clean-start, waiting-active, cancellation-ready, offer-active,
+Scenario presets (clean-start and waiting-active in Phase 2, cancellation-ready and offer-active in Phase 3, payment-unknown in Phase 4, late-ready in Phase 5; all implemented): clean-start, waiting-active, cancellation-ready, offer-active,
 payment-unknown, late-ready. Build presets only when their phase is implemented.
 A preset creates a coherent snapshot, not a visual-only screen override.

@@ -33,11 +33,12 @@ Keep all values in `core/config.js` when implemented. User instructions may chan
 | Ordinary booking availability | Computed per restaurant from fixture patterns: booking window per restaurant (r1 30, r2 60, r3 45 days; the page shows 14 date chips, the calendar the whole window), times listed per restaurant, past times closed, sold-out [day offset, time] pairs (r1 day+1 19:00/19:30 and day+2 18:30/19:00, kept for the Phase 3 cancellation demo; r2 today; r3 day+2). The calendar lists only open times, as the app does. Party size only needs to fit the restaurant's maximum |
 | Recent views / search | Opening a detail page records a per-customer recent view (newest first, no duplicates); search matches every typed term against name, area, cuisine, description, tags, stations and menu names |
 | Saved restaurants / coupons | Per active customer; saving toggles, claiming a coupon twice keeps one claim; save counts show the captured count + 1 when saved |
-| Late report | ETA must be later than booked time and within the same service date |
+| Late report | ETA must be later than the current booked time and within the same service date; the customer picks it in 10-minute steps up to 2 hours later, with an optional reason chip. Reporting is never approval |
 | Proposed new time | Customer must explicitly accept; reject leaves original booking time unchanged |
 | Cannot retain | Record response and show contact/next-step guidance; do not auto-cancel or waive fees |
 | Manager silence | Show awaiting response and contact guidance; never auto-approve |
-| Updated ETA | Create a new coordination version, invalidate obsolete proposed-time actions |
+| Updated ETA | Create a new coordination version, invalidate obsolete proposed-time actions. Every manager answer and customer decision carries the version it saw; a mismatch is refused (STALE_VERSION / STALE_PROPOSAL) instead of applied |
+| Late responses | One answer per version (RETAINED, CHANGE_PROPOSED with a same-day time different from the current one, CANNOT_RETAIN), only by the manager of the reservation's restaurant; each answer notifies the customer (LATE_RESPONSE) |
 | Time display | Asia/Seoul; seed dates are derived from reset time, never frozen to October 2026 |
 | Demo writer | One active editing tab; multiple read-only views may observe state |
 

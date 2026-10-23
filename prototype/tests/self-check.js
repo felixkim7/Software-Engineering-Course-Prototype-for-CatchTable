@@ -21,6 +21,7 @@ import {
   chargesForOffer, compensatePayment, REQUIRED_CONSENTS, reservationForOffer, resolveUnknownPayment, retryReservationCommit, setPaymentFlag, startCheckout,
 } from '../assets/js/services/payment.js';
 import { reconcile } from '../assets/js/services/reconcile.js';
+import { coordinationFor, decideProposal, respondToLate, submitEta } from '../assets/js/services/late-arrival.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const results = [];
@@ -519,6 +520,66 @@ try {
     applyPreset('offerActive');
     startCheckout('of-1', consented);
     assert(withdrawRequest('cr-2').reason === 'PAYMENT_IN_PROGRESS' && declineOffer('of-1').reason === 'PAYMENT_IN_PROGRESS', 'slot dropped');
+  });
+
+  // ---- Late-arrival coordination (Phase 5) ----
+  const rv1 = () => getState().reservations.find((r) => r.id === 'rv-1');
+  const lc = () => coordinationFor(getState(), 'rv-1');
+
+  await check('L01 an ETA stays SUBMITTED (not approval); invalid ETAs and other customers are refused', () => {
+    resetDemo();
+    assert(submitEta('rv-1', '18:00').reason === 'LATE_INVALID_ETA' && submitEta('rv-1', '17:50').reason === 'LATE_INVALID_ETA' && submitEta('rv-1', '24:10').reason === 'LATE_INVALID_ETA', 'eta');
+    setPreference('activeCustomerId', 'c2');
+    assert(submitEta('rv-1', '18:30').reason === 'RESERVATION_NOT_OWNED' && !lc(), 'other customer');
+    setPreference('activeCustomerId', 'c1');
+    assert(submitEta('rv-1', '18:30', '교통 체증').ok && lc().status === 'SUBMITTED' && lc().version === 1 && rv1().currentTime === '18:00', 'submitted');
+  });
+
+  await check('L02 retain: explicit answer, time unchanged, customer notified, one answer per version', () => {
+    applyPreset('lateReady');
+    assert(respondToLate('rv-1', 1, 'RETAINED').ok && respondToLate('rv-1', 1, 'CANNOT_RETAIN').reason === 'NOTHING_TO_ANSWER', 'answer once');
+    const note = getState().notifications.find((n) => n.kind === 'LATE_RESPONSE');
+    assert(lc().status === 'RETAINED' && rv1().currentTime === '18:00' && note?.data.response === 'RETAINED', 'retained');
+  });
+
+  await check('L03/L04 only an accepted proposal changes currentTime; originalTime stays', () => {
+    applyPreset('lateReady');
+    assert(respondToLate('rv-1', 1, 'CHANGE_PROPOSED', '18:00').reason === 'INVALID_PROPOSAL', 'same time');
+    respondToLate('rv-1', 1, 'CHANGE_PROPOSED', '18:40');
+    assert(rv1().currentTime === '18:00' && decideProposal('rv-1', 1, true).ok, 'accept');
+    assert(rv1().currentTime === '18:40' && rv1().originalTime === '18:00' && lc().status === 'CHANGE_ACCEPTED' && decideProposal('rv-1', 1, true).reason === 'STALE_PROPOSAL', 'L03');
+    applyPreset('lateReady');
+    respondToLate('rv-1', 1, 'CHANGE_PROPOSED', '18:40');
+    assert(decideProposal('rv-1', 1, false).ok && rv1().currentTime === '18:00' && lc().status === 'CHANGE_REJECTED', 'L04');
+  });
+
+  await check('L05 cannot retain: no cancellation, no refund, booking unchanged', () => {
+    applyPreset('lateReady');
+    const before = JSON.stringify(rv1());
+    assert(respondToLate('rv-1', 1, 'CANNOT_RETAIN').ok && lc().status === 'CANNOT_RETAIN' && JSON.stringify(rv1()) === before, 'booking changed');
+    assert(getState().paymentOperations.length === 0, 'refund introduced');
+  });
+
+  await check('L06 a new ETA makes the old proposal and old responses obsolete', () => {
+    applyPreset('lateReady');
+    respondToLate('rv-1', 1, 'CHANGE_PROPOSED', '18:40');
+    assert(submitEta('rv-1', '18:50').ok && lc().version === 2 && lc().status === 'SUBMITTED' && lc().proposedTime === null, 'new version');
+    assert(decideProposal('rv-1', 1, true).reason === 'STALE_PROPOSAL' && respondToLate('rv-1', 1, 'RETAINED').reason === 'STALE_VERSION', 'stale accepted');
+    assert(rv1().currentTime === '18:00' && respondToLate('rv-1', 2, 'RETAINED').ok, 'fresh answer');
+    assert(lc().history.map((e) => `${e.version}:${e.actor}:${e.action}`).join() === '1:customer:ETA_SUBMITTED,1:manager:CHANGE_PROPOSED,2:customer:ETA_SUBMITTED,2:manager:RETAINED', 'history');
+  });
+
+  await check('L07 another manager or customer cannot act, and nothing changes', () => {
+    applyPreset('lateReady');
+    setPreference('activeManagerId', 'm2');
+    const before = JSON.stringify(getState().lateCoordinations);
+    assert(respondToLate('rv-1', 1, 'RETAINED').reason === 'FORBIDDEN' && JSON.stringify(getState().lateCoordinations) === before, 'm2 answered');
+    setPreference('activeManagerId', 'm1');
+    respondToLate('rv-1', 1, 'CHANGE_PROPOSED', '18:40');
+    setPreference('activeCustomerId', 'c2');
+    assert(decideProposal('rv-1', 1, true).reason === 'RESERVATION_NOT_OWNED' && rv1().currentTime === '18:00', 'c2 decided');
+    setPreference('activeCustomerId', 'c1');
+    assert(lc().status === 'CHANGE_PROPOSED' && lc().history.length === 2, 'state');
   });
 } finally {
   if (backup === null) localStorage.removeItem(STORAGE_KEY);

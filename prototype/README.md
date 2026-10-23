@@ -21,7 +21,7 @@ VS Code Live Server also works: open `prototype/index.html` with "Open with Live
 Demo data is stored per origin. Use the same host and port every time (e.g. always
 `localhost:5500`) to keep it; `127.0.0.1:5500` is a different origin with separate data.
 
-## Pages (through Phase 4)
+## Pages (through Phase 5)
 
 | Route | Purpose |
 |---|---|
@@ -37,7 +37,8 @@ Demo data is stored per origin. Use the same host and port every time (e.g. alwa
 | `customer/offer.html?offerId=of-1` | Exclusive priority offer: countdown, decline (booking itself is Phase 4) |
 | `customer/inbox.html` | 나의 알림: offers, expiries, waiting calls, booking confirmations and refunds |
 | `customer/checkout.html?offerId=of-1` | Mock priority checkout (예약금, consents, demo card) and its payment states |
-| `customer/reservation.html?reservationId=rv-1` | Reservation detail / confirmation |
+| `customer/reservation.html?reservationId=rv-1` | Reservation detail / confirmation, with late-arrival (ETA) coordination |
+| `manager/reservation.html?reservationId=rv-1` | Manager reservation detail: answer a late-arrival report (retain / propose a time / cannot retain) |
 | `manager/reservations.html` | Manager 예약 · 빈자리: released slots and the request queue |
 | `manager/waiting.html` | Manager waiting dashboard (desktop): 접수 switch, queue, 호출 / 착석 / 취소. Acts as the manager selected in the hub |
 | `customer/ui-sample.html` | Neutral mobile sample of shared components (390px reference width) |
@@ -51,7 +52,11 @@ Demo of the cancellation queue: hub '빈자리 대기 준비' (3 requests for �
 moves to 이도윤; with nobody left the time reopens for booking. Customers join from the booking sheet by
 tapping a 마감 time. On the offer, 예약하기 → 예약금 안내 → checkout (all consents) → 결제하기 books it with a
 mock payment. Hub '모의 결제 시뮬레이션' arms a failure, a deferred (unknown) result or a reservation-save
-failure for the next payment, and lists held payments with resolve / retry / refund buttons. App controls that this demo
+failure for the next payment, and lists held payments with resolve / retry / refund buttons.
+
+Demo of late arrival: open rv-1 (hub link or 마이다이닝), tap 늦는다고 알리기 and pick an ETA; or apply
+'지각 조율 준비'. In a manager tab open 예약 · 빈자리 → rv-1 상세 and answer. The customer tab updates; a proposed
+time changes the booking only when the customer accepts it. Both pages show the same 조율 기록. App controls that this demo
 does not implement stay visible and say so when tapped.
 Restaurant basics and photos for r1/r2 come from app captures of 2026-10-16; availability,
 deposits, waiting and statistics are demo data. The Pretendard font is bundled (SIL OFL).

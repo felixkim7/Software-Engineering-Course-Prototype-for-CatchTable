@@ -1,7 +1,8 @@
 # Development Progress
 
-Current phase: Phase 4 COMPLETE (2026-10-23).
-Next authorized candidate: Phase 5, which starts only on an explicit user request.
+Current phase: Phase 5 COMPLETE (2026-10-23).
+Next authorized candidate: Phase 6, which starts only on an explicit user request.
+It now also includes the user-requested MY tab and more restaurants (docs/phases/phase-6-integration.md).
 
 | Phase | Status | Verification evidence |
 |---|---|---|
@@ -10,10 +11,62 @@ Next authorized candidate: Phase 5, which starts only on an explicit user reques
 | 2 Waiting | Complete | 22/22 Phase 2 acceptance (W01-W08), 26/26 self-check page, 52/52 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 3 Cancellation queue | Complete | 16/16 Phase 3 acceptance (Q01-Q08 through the UI), 35/35 self-check page, 22/22 Phase 2, 53/53 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 4 Priority booking | Complete | 16/16 Phase 4 acceptance (UC-PB, P01-P12 through the UI), 44/44 self-check page, 16/16 Phase 3, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0, accessible-name and contrast checks (2026-10-23) |
-| 5 Late arrival | Not started | None |
+| 5 Late arrival | Complete | 11/11 Phase 5 acceptance (L01-L08 through the UI, two roles), 50/50 self-check page, 16/16 Phase 4, 16/16 Phase 3, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0 (2026-10-23) |
 | 6 Integration | Not started | None |
 
-## Current session (2026-10-23, Phase 4: priority checkout, payment outcomes, recovery)
+## Current session (2026-10-23, Phase 5: late-arrival coordination)
+
+- Request: "add [the MY tab] to phase 6, i put the new screenshot. also for phase 6 add more restaurants than just
+  having 3. search online for name, menu, photos, etc. now work on phase 5".
+- Phase 6 spec updated with both additions: A, MY tab from capture 220751; B, more restaurants from public sources
+  with provenance and photo-licence limits. Capture 220751 is inventoried, and its account name and review are marked personal.
+- References: CatchTable has no late-arrival feature (searched, see reference-screens/README.md). Screens are provisional.
+
+**Files**
+- New:
+  - `services/late-arrival.js`: submitEta, respondToLate, decideProposal, version guards;
+  - `ui/late-ui.js`: ETA sheet, status card, shared history;
+  - `pages/manager-reservation.js` + `manager/reservation.html` (M03).
+- Changed:
+  - reservation.js (C07 late section, changed-time display);
+  - manager-reservations.js (지각 조율 badge and 상세 link);
+  - inbox (LATE_RESPONSE);
+  - presets (lateReady);
+  - hub (M03 link; all presets now implemented);
+  - strings;
+  - CSS: components (history), checkout (C07 late), desktop (M03);
+  - tests/self-check.js (6 late-arrival checks).
+
+**Behaviour** (FR-11..14)
+- The customer sends an ETA (after the booked time, same day) with an optional reason. It stays SUBMITTED and is shown as not approved.
+- The manager of that restaurant answers the current version once: retain, propose a different same-day time, or cannot retain. The customer is notified.
+- Only accepting a proposal changes currentTime; originalTime stays. Reject and cannot-retain change nothing. No cancellation, refund or fee waiver anywhere.
+- A new ETA opens the next version; answers or decisions carrying an older version are refused.
+- Both roles render the same history entries (version, actor, timestamp, action).
+
+**Evidence** (headless Edge via playwright-core in the session scratchpad, server `python -m http.server 5577`)
+- Phase 5 acceptance 11/11:
+  - L01: sheet → SUBMITTED with a not-approval note; M01 badge; M03 ETA, delay and reason;
+  - L02: retain reaches the open customer tab and inbox, time unchanged;
+  - L03: propose 18:40 and accept; both views show 18:40 with original 18:00 and identical history;
+  - L04: reject keeps 18:00;
+  - L05: no-answer guidance; cannot-retain leaves the booking CONFIRMED with deposit and no payment operations;
+  - L06: updating the ETA after a proposal opens version 2, the customer's accept button disappears and the manager answers 2차;
+  - L07: other manager and customer get no actions;
+  - L08: after reloads both histories match;
+  - no overflow (360px, 1024px); no unnamed controls; no console errors.
+- Self-check 50/50, including stale-version and stale-proposal refusals and no mutation by the wrong manager or customer.
+- Regressions: Phase 4 16/16, Phase 3 16/16, Phase 2 22/22 (preset count updated to 6), fidelity 53/53, Phase 0 38/38.
+
+**Unverified**
+- Real devices and screen readers.
+- Concurrent writers (one active writer tab is supported).
+
+**Open items**
+- No phone/call integration: guidance only, as specified.
+- An ETA can be sent any time before the visit; there is no time-window policy.
+
+## Phase 4 session record (2026-10-23)
 
 - Request: "now go with phase 4".
 - References:
@@ -635,3 +688,9 @@ Append a short entry at the end of each session. Do not delete prior findings.
   - 16/16 Phase 4, 44/44 self-check, all regressions green.
   - Nothing committed.
   - Suggested commit: `phase-4: priority checkout with mock payment ledger, unknown holds, commit recovery and reservations`.
+- 2026-10-23, Phase 5:
+  - Late-arrival coordination: ETA from C07, manager M03 retain / propose / cannot-retain, customer accept / reject, versioned shared history, notifications, late-ready preset.
+  - Phase 6 spec extended with the MY tab and more restaurants.
+  - 11/11 Phase 5, 50/50 self-check, all regressions green.
+  - Nothing committed.
+  - Suggested commit: `phase-5: late-arrival coordination with versioned ETA, manager responses and shared history`.

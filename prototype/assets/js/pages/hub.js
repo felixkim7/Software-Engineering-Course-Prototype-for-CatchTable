@@ -236,6 +236,7 @@ function buildScreensPanel(state) {
       link(T.queueLink, 'customer/cancellation-queue.html'),
       link(T.inboxLink, 'customer/inbox.html'),
       link(T.reservationsLink, 'customer/reservation.html', { reservationId: 'rv-1' }),
+      link(T.managerReservationLink, 'manager/reservation.html', { reservationId: 'rv-1' }),
       link(T.managerApp, 'manager/waiting.html'),
       link(T.managerReservations, 'manager/reservations.html'),
       link(T.uiSample, 'customer/ui-sample.html'),
