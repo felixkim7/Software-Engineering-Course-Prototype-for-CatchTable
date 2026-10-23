@@ -1,4 +1,5 @@
 import { h } from './dom.js';
+import { STRINGS } from '../core/strings.js';
 
 const VISIBLE_MS = 3000;
 
@@ -14,4 +15,19 @@ export function showToast(message) {
   region.classList.add('is-visible');
   clearTimeout(hideTimer);
   hideTimer = setTimeout(() => region.classList.remove('is-visible'), VISIBLE_MS);
+}
+
+/** Copies text (link, address) and reports the outcome; clipboard needs a secure context. */
+export async function copyWithToast(text, successMessage, failureMessage) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(successMessage);
+  } catch {
+    showToast(failureMessage);
+  }
+}
+
+/** Shared response for app controls kept for visual fidelity but not built in this demo. */
+export function notInDemo() {
+  showToast(STRINGS.common.notInDemo);
 }

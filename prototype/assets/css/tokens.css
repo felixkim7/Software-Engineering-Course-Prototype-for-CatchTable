@@ -1,8 +1,9 @@
 /* Design tokens. Values and their evidence: docs/visual-spec.md */
 :root {
   --color-brand: #FF3D00;
-  --color-primary: #DD3500;         /* brand darkened to 4.58:1 with white text */
-  --color-primary-pressed: #C43000;
+  --color-primary: #FF3D00;         /* app CTA fill; white labels are 19px bold = WCAG large text (3:1) */
+  --color-primary-pressed: #E63700;
+  --color-primary-strong: #DD3500;  /* orange behind small white text (4.58:1) */
   --color-primary-text: #C93000;    /* small orange text on white or brand-soft */
   --color-brand-soft: #FFF0EB;
   --color-danger: #DC1B1C;
@@ -20,6 +21,16 @@
   --color-chip-text: #626F78;
   --color-border: #E4E4E7;
   --color-divider: #F0F0F0;
+  --color-field: #F5F5F5;           /* search field */
+  --color-segmented: #EAEFF3;
+  --color-segmented-border: #7F8D96;
+  --color-chart-line: #3375DB;      /* waiting chart line (173602); 4.46:1 on white (graphics need 3:1) */
+  --color-chart-area: #ECF3FD;
+  --color-star: #F5C618;
+  --color-soldout: #EEF1F4;         /* sold-out date chip */
+  --color-coupon-border: #FFC4B0;
+  --color-ai-from: #E8366F;         /* AI summary accent gradient */
+  --color-ai-to: #E5512A;
   --color-toast: #474747;
   --color-scrim: rgb(0 0 0 / 0.6);
   --color-warning-bg: #FFF8E1;
@@ -30,7 +41,7 @@
   --font-body-sm: 14px;
   --font-body: 15px;
   --font-button: 16px;
-  --font-cta: 17px;
+  --font-cta: 19px;                 /* >= 18.66px bold so white on brand orange meets 3:1 */
   --font-header: 18px;
   --font-section: 20px;
   --font-title: 24px;

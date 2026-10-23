@@ -8,3 +8,7 @@ export function pageUrl(path, params = {}) {
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   return url.href;
 }
+
+export function queryParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}

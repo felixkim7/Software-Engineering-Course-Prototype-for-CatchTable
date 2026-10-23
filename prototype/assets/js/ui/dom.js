@@ -10,6 +10,6 @@ export function h(tag, attributes = {}, ...children) {
     if (name.startsWith('on')) element.addEventListener(name.slice(2), value);
     else element.setAttribute(name, value === true ? '' : String(value));
   }
-  element.append(...children.flat().filter((child) => child != null && child !== false));
+  element.append(...children.flat(Infinity).filter((child) => child != null && child !== false));
   return element;
 }

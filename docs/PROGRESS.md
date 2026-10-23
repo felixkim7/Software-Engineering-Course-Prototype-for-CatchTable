@@ -1,19 +1,249 @@
 # Development Progress
 
-Current phase: Phase 0 COMPLETE (2026-10-23). Next authorized candidate: Phase 1, which
-starts only on an explicit user request.
+Current phase: Phase 1 COMPLETE plus two requested visual-fidelity passes (2026-10-23).
+Next authorized candidate: Phase 2, which starts only on an explicit user request.
 
 | Phase | Status | Verification evidence |
 |---|---|---|
-| 0 Foundation | Complete | 38/38 headless Edge checks, 12/12 self-check page, 2 extra store checks (2026-10-23) |
-| 1 Discovery and statistics | Not started | None |
+| 0 Foundation | Complete | 38/38 headless Edge checks, 12/12 self-check page, 2 extra store checks (2026-10-23); 38/38 regression rerun after Phase 1 |
+| 1 Discovery and statistics | Complete | 40/40 headless Edge checks, 17/17 self-check page, accessible-name and contrast checks (2026-10-23); after the 49-capture pass: 52/52 acceptance checks, 20/20 self-check page |
 | 2 Waiting | Not started | None |
 | 3 Cancellation queue | Not started | None |
 | 4 Priority booking | Not started | None |
 | 5 Late arrival | Not started | None |
 | 6 Integration | Not started | None |
 
-## Current session (2026-10-23, Phase 0)
+## Current session (2026-10-23, 49-capture fidelity pass before Phase 2)
+
+- Request: "i put the new 49 requested screenshots. some are missing like 웨이팅 미루기 and etc.
+  search for those screen online and use them as reference. use them before proceeding to phase 2".
+- Captures inventoried in docs/reference-screens/README.md. Missing screens were searched online;
+  sources are listed there with what they show. Their images stay outside the repo.
+- Phase 2 was NOT started.
+
+**What changed**
+
+- Fixtures moved to `core/fixtures/{wolhwa,vivo,sushiren}.js`.
+  - r3 is now the real booking-only 스시렌.
+  - Each fixture carries menus (with thumbnails and boards), review distribution and purposes, photo filters, store info (address, map, directions, facilities, guides, phone, notices, capacity), weekly hours, stations, badges, ribbon, news and broadcasts.
+  - Review bodies are not reproduced.
+- Store schema 4:
+  - waiting statistics are averages (`avgMinutes`, `avgTeams`, `sampleCount`), matching the app's chart;
+  - new `recentViews` collection;
+  - booking window per restaurant;
+  - r2 sold out today only.
+- Detail page (`pages/restaurant.js`, `ui/detail-summary.js`, `ui/detail-panels.js`):
+  - Tabs became a WAI-ARIA tablist that switches panels (7 tabs for 스시렌), pinned under the header.
+  - Station and weekly-hours rows expand.
+  - 위치 opens 매장정보 at the location section.
+  - Address copy.
+  - Ribbon above the bottom bar.
+- Booking (`ui/booking-panel.js`, `ui/sheet.js`):
+  - The calendar sheet follows 171404: month view, party circles, open times only.
+  - A time opens the visit confirmation (171732); 확인 explains that booking payment is not in this demo.
+  - With a selection, the CTA reopens the confirmation.
+- Statistics (`ui/waiting-stats.js`): the line chart of 173602 with weekday circles and 대기 많음. To-Be additions are listed in visual-spec.md.
+- New C12 search page (`customer/search.html`, `pages/search.js`). Saved and my-dining were restyled to 173436 and 173505.
+- Home gains the 7 brand tabs, a search link and the 어디로 가시나요? area tiles.
+- CSS:
+  - detail.css rewritten;
+  - new `panels.css` and `sheet.css`;
+  - shared chips, picker and date chips moved to mobile.css;
+  - global `[hidden] { display: none !important }` added.
+- Removed: `ui/restaurant-detail.js`, `restaurants/vivo-1.jpg`, the obsolete stepper, time-grid and bar-chart CSS.
+- New assets: 4 월화 photos, vivo-3, 3 스시렌 photos, 26 menu thumbnails, 6 menu boards, 3 maps, 8 area tiles, ribbon mark, award banner. Provenance is in assets.md.
+- Docs updated: CLAUDE.md (r3), decisions.md, data-model.md, screen-map.md (C12), visual-spec.md, assets.md, reference-screens/README.md, prototype/README.md.
+
+**Evidence** (headless Edge via playwright-core in the session scratchpad, server `python -m http.server 5577`)
+
+- New acceptance script: 52/52. It covers:
+  - home: tabs, categories, areas, filters, not-in-demo toasts, banner counter;
+  - search: focus, recent views, multi-term match, empty state, suggestion chip;
+  - saved and my-dining;
+  - detail: save, share, phone, coupon, disclosure, tabs with arrow keys, 위치 jump, address copy, reviews;
+  - booking: past days disabled, party 1-6 or 1-10, day+1 19:00 sold out, confirm → explanation, Escape focus return, date chip opens that day;
+  - statistics: chart tap, 수집 중, tooltip, keyboard radios, no 0분;
+  - r2 collecting; r3 tabs and calendar;
+  - 360px overflow, clipped-label and sticky-bar checks on 9 page states;
+  - no console errors.
+- Phase 0 regression 38/38. Self-check page 20/20, including a new recent-views check and updated statistics and availability checks.
+- Contrast computed for every new colour pair:
+  - time chip lightened to 4.64:1;
+  - saved "추천" darkened to 4.54:1;
+  - chart line 4.46:1 (graphics need 3:1).
+- Screenshots compared side by side with 171404, 171732, 173403, 173436, 173505 and 173602 (differences in visual-spec.md).
+
+**Unverified**
+
+- Real devices: checked only in headless Edge at 390x844 and 360x780.
+- Screen-reader output: only the accessibility tree was inspected.
+
+**Open issues for the user**
+
+- **웨이팅 미루기 rule conflict.** Public posts say postponement moves you to the back of the queue, about 2 times, not after being called. decisions.md says "behind 1 or 2 parties, selectable". Unchanged; decide before Phase 2. No source shows the postpone sheet itself.
+- Still missing: 월화 expanded weekly hours, more vivo full-screen photos, the postpone sheet, a reservation detail screen.
+- Mock values that differ from the app:
+  - vivo's real deposit is 10,000원 per person (171739); the fixture deposit stays 0 until Phase 4.
+  - r1's mock deposit is 20,000원.
+
+## Fidelity pass 1 record (2026-10-23)
+
+- Request: home extras, detail extras, booking date/time picker, Pretendard, real restaurant info and photos, "as close to the real app as possible", guidelines may be edited.
+- Constraint found: app.catchtable.co.kr robots.txt disallows automated agents. Nothing was crawled or downloaded from it.
+  - Web search did not give verified address/phone/menu data, so none was added.
+  - Real data comes only from the user's captures; a capture checklist was added to docs/reference-screens/README.md.
+
+**Files created**
+
+- Pages: `customer/saved.html`, `customer/my-dining.html` (+ `pages/saved.js`, `pages/my-dining.js`)
+- Data and services: `core/restaurant-fixtures.js`, `services/booking.js`, `services/customer.js`
+- UI: `ui/bottom-nav.js`, `ui/sheet.js`, `ui/booking-panel.js`, `ui/restaurant-detail.js`
+- CSS: `css/detail.css`
+- Fonts: `assets/fonts/PretendardVariable.woff2` + `OFL.txt`
+- Images: `assets/images/home/*` (banner, 3 brand icons, 20 category icons), `assets/images/restaurants/*` (3 photos)
+
+**Files rewritten or updated**
+
+- Pages: `pages/discovery.js` (home), `pages/restaurant.js`
+- UI: `ui/restaurant.js`, `ui/icons.js`, `ui/toast.js` (`notInDemo`)
+- Core: `core/seed-data.js`, `config.js` (schema 3), `strings.js`, `format.js`
+- CSS: `mobile.css`, `tokens.css`, `base.css`
+- Tests: `tests/self-check.js` (19 checks)
+- Docs: `CLAUDE.md`, `requirements.md`, `design-system.md`, `decisions.md`, `data-model.md`, `screen-map.md`, `source-notes.md`, `visual-spec.md`, `assets.md`, `reference-screens/README.md`, `prototype/README.md`
+
+**What changed for the user**
+
+- **Home:** logo, search, history/bell, brand tabs, location row, banner carousel with live counter, 20 category icons, restaurant list, bottom nav.
+- **Detail:**
+  - Header icons; the title appears on scroll.
+  - Photo carousel, Blue Ribbon chip, 함께 고르기, rating/review count, subway badges, tags.
+  - Sticky 홈/메뉴/사진/리뷰/매장정보 tabs that scroll to sections.
+  - Coupon claim (persisted), mock booking picker (party, date, time), AI summary.
+  - Save (persisted, count +1), share (copies link), phone (explains).
+- **r1/r2 are real listings:** 월화식당 마포본점 and vivo pizza 공덕점, with ratings, counts, hours, tags, AI summaries, coupon and photos from the captures. r3 stays fictional.
+- **Brand color:** CTA fill is now the app's #FF3D00 with 19px bold labels (large-text contrast).
+
+**Checks actually run and outcomes.** Headless Edge on 127.0.0.1:5577.
+
+| Check | Result |
+|---|---|
+| Fidelity suite | 44/44, run 3 times in a row (one earlier failure was a test timing issue, fixed in the test) |
+| Phase 0 regression | 38/38 |
+| Self-check page | 19/19 |
+| All Phase 1 acceptance criteria re-verified (cards and back, same statistics component, collecting never zero, period/units, r3 no waiting, 360px layout) | Pass |
+| Every new control works locally or shows the shared "not in this demo" message | Pass |
+| Save, coupon and booking selection persist or apply; final booking/waiting steps explain rather than fake success | Pass |
+| Tabs jump under the sticky header and mark the current tab | Pass after a fix: the last section now has a min-height so later tabs can reach the top |
+| Escape closes the sheet with focus return; Pretendard loads from the local file | Pass |
+| Accessible names re-checked | Pass |
+| Contrast | Pass after darkening the AI accent end color. Subway badges are a documented exception |
+| Side-by-side image comparisons against 161246 and 183425 | Done; text sizes reduced about 10% to match proportions |
+
+**Unverified checks (not run, so not passed)**
+
+- Headed browser via Live Server on port 5500; Firefox and Safari; a real phone.
+- Actual screen-reader speech.
+- Clipboard copy on non-localhost origins.
+- Whether the presenter's projector shows the about-10% smaller text comfortably.
+
+**Known issues and gaps (need captures)**
+
+- Menu, review text, address, phone and weekly hours are not shown; sections say they are being prepared.
+- Only 1-2 photos per restaurant.
+- The booking sheet design is provisional.
+- r3 is still fictional.
+- The statistics chart form is still provisional.
+- Real CatchTable artwork and photos sit in a public repo once pushed: the user's decision.
+
+**Next exact action:** user captures the checklist items (priority 1-7 and 14), or starts Phase 2.
+
+## Phase 1 session record (2026-10-23)
+
+- Requested phase: Phase 1 only. Phase 0 had been committed by the user as `c628344`.
+
+**Files created**
+
+- `prototype/customer/discovery.html`, `prototype/customer/restaurant.html`
+- `prototype/assets/js/pages/discovery.js`, `prototype/assets/js/pages/restaurant.js`
+- `prototype/assets/js/services/statistics.js`
+- `prototype/assets/js/ui/`: waiting-stats.js, icons.js, restaurant.js
+
+**Files updated**
+
+- `core/`: config.js (schema 2, statistics policy), seed-data.js (restaurant hours/description, statistics fixtures), store.js ('outdated' status), format.js (date helpers), strings.js, nav.js (`queryParam`)
+- `ui/header.js`: title now optional, uses icons.js
+- `pages/hub.js`: customer-app and r1-r3 links
+- CSS: `tokens.css`, `mobile.css`
+- Tests: `tests/foundation.test.js` renamed to `tests/self-check.js`; `tests/index.html` updated
+- Docs: `prototype/README.md`, `docs/visual-spec.md`, `docs/assets.md`, this file
+
+**Completed steps (phase-1 spec)**
+
+1. C01 discovery:
+   - Fictional list with text search and a 전체/예약/웨이팅 filter.
+   - Cards are links to `restaurant.html?restaurantId=…`.
+   - Empty state with a clear action.
+   - The logo returns to the presenter hub.
+2. C02 detail renders booking and waiting capability independently:
+   - r1 gets a 예약/웨이팅 segmented control.
+   - r2 shows waiting only; r3 shows booking only.
+   - A missing or invalid ID shows a not-found screen with a working return link.
+3. Statistics:
+   - Weekday picker and hourly selection.
+   - Summary tile with median, unit ("약 N분") and record count.
+   - Bar list, with the period and update timestamp in the caption.
+   - An uncertainty note says the values are historical, not a forecast.
+4. Collecting states:
+   - r1's sparse cells (weekday 15-16시) show "수집 중" with no bar.
+   - r2 shows the collecting panel inside the same component.
+   - r3 has no waiting section.
+5. The booking and waiting CTAs are disabled and their labels say they are not available in this demo. No success is simulated.
+
+**Checks actually run and outcomes.** Headless Edge, repo served by `python -m http.server` on 127.0.0.1:5577.
+
+| Check | Result |
+|---|---|
+| Each of the 3 cards opens the matching detail (h1 and restaurantId); back returns to discovery | Pass |
+| Filters (웨이팅 gives r1, r2; 예약 gives r1, r3), search "라멘", empty state "식당 0곳", clear restores 3 | Pass |
+| r1: segmented 예약/웨이팅; deposit 20,000원; booking CTA disabled "…일반 예약을 할 수 없어요"; statistics hidden on booking tab | Pass |
+| r1 waiting tab: caption "최근 4주(9월 25일 ~ 10월 22일) 웨이팅 기록 기준 · 10월 23일 00:00 업데이트"; 7 weekdays; 10 hourly rows | Pass |
+| r1 ready cell 금 19시: "약 60분 / 최근 4주 중앙값 · 기록 31건" | Pass |
+| r1 sparse cell 월 15시: "수집 중 / 기록 2건 · 5건 이상 모이면 보여드려요", bar width 0 | Pass |
+| No "0분" anywhere on r1 or r2 | Pass |
+| Keyboard: arrow keys change weekday and slot, focus stays on the radio, summary follows | Pass |
+| r2: same section title and component, collecting panel "기록 108건"; waiting CTA unavailable | Pass |
+| r3: no statistics, no segmented control, no waiting text; deposit 없음 | Pass |
+| Invalid and missing restaurantId give not-found, and its link reaches discovery | Pass |
+| 360x780 (discovery, r1 waiting, r2, r3): no horizontal overflow, no clipped labels, no overlap among row time/bar/value, sticky bar never covers the last content | Pass |
+| Hub links to discovery and r1-r3 | Pass |
+| Schema-1 (Phase 0) data shows the "이전 버전" banner; customer pages still render; reset clears it | Pass |
+| No console errors, warnings, failed requests or 4xx on any page | Pass |
+| Self-check page: 17/17, including 5 new statistics checks | Pass |
+| Phase 0 regression suite | 38/38. The first rerun failed 2 checks only because the test script hard-coded schemaVersion 1; script updated |
+| Accessible names (aria snapshot): radios "예약"/"웨이팅", "월요일"…"일요일" (fixed from "월 요일"), "15시 수집 중", "19시 약 60분" | Pass |
+| Contrast, text pairs: segmented inactive #656565/#EAEFF3 5.03; selected-row text 5.25; chip 4.69 | Pass |
+| Contrast, search placeholder | Was 4.17, fixed to #656565 (5.4) |
+| Contrast, non-text: selected border 3.41; selected bar 3.20; unselected bars 1.58 (values always also in text) | Accepted |
+
+Screenshots were reviewed at 390 and 360 for discovery, r1 booking, r1 statistics (ready and sparse), r2 and r3. Full-page captures draw sticky bars mid-page; that is a capture artifact, and the scroll test confirms nothing is covered.
+
+**Unverified checks (not run, so not passed)**
+
+- Headed browser via Live Server on port 5500.
+- Firefox, Safari, and a real phone with touch.
+- Actual screen-reader speech, including whether the summary's `aria-live` announcement on weekday change is too chatty.
+- Back/forward cache restoring filter state. Filters intentionally reset on return.
+- Statistics against a real CatchTable statistics screen: no reference exists.
+
+**Known issues**
+
+- Restaurant photos are neutral placeholders until real or licensed images are supplied.
+- The 홈/메뉴/사진/리뷰 tabs, header icons, rating, save/phone buttons and home bottom nav are omitted rather than shown dead.
+- The detail page's "today" label uses the demo clock at page load; it does not update if the clock advances while the page is open.
+
+**Next exact action:** user reviews discovery and detail, then sends the Phase 2 prompt from `docs/prompts.md`.
+
+## Phase 0 session record (2026-10-23)
 
 - Requested phase: Phase 0 only.
 
@@ -22,7 +252,7 @@ starts only on an explicit user request.
 - `prototype/index.html`: presenter hub.
 - `prototype/README.md`
 - `prototype/customer/ui-sample.html`
-- `prototype/tests/index.html`, `prototype/tests/foundation.test.js`
+- `prototype/tests/index.html`, tests/foundation.test.js (renamed to `prototype/tests/self-check.js` in Phase 1)
 - `prototype/assets/css/`: tokens.css, base.css, components.css, mobile.css, desktop.css
 - `prototype/assets/js/core/`: config.js, store.js, seed-data.js, clock.js, format.js, strings.js, nav.js
 - `prototype/assets/js/ui/`: dom.js, header.js, modal.js, toast.js
@@ -115,12 +345,24 @@ Initial policies are in decisions.md. Add dated deviations and their reasons her
 - 2026-10-23: `config.js` holds only the policy values used so far (mock delay, deposit). Each phase adds its decisions.md values.
 - 2026-10-23: The state-machine module and services are deferred to the phases that need them.
 - 2026-10-23: Screenshot filenames are kept as supplied. reference-screens/README.md maps them to the kit's suggested slots.
+- 2026-10-23 (Phase 1): Schema version 2. Data from an older schema gets status 'outdated'.
+  - It is left untouched, writes are refused, and the hub asks for a reset.
+  - There is no automatic migration: demo data is disposable, but silently replacing stored data is not allowed.
+- 2026-10-23 (Phase 1): Statistics fixtures use per-hour cells over opening hours, last 4 weeks ending the day before reset, updated at 00:00 KST on the reset day.
+  - A cell needs at least 5 records (decisions.md).
+  - `services/statistics.js` never returns a number for a sparse cell.
+  - r2's story ("최근 문을 연") explains why it is still collecting.
+- 2026-10-23 (Phase 1): Chart form is provisional: a horizontal bar list where the selected hour is brand orange and the rest grey, with values in text colors. Orange numerals are reserved for the live queue (Phase 2).
+- 2026-10-23 (Phase 1): Ordinary booking is outside the demo scope (requirements.md). The booking panel shows the deposit policy, and the CTA says booking is unavailable in this demo.
+- 2026-10-23 (Phase 1): The default 예약/웨이팅 tab is 예약, as in the app. The statistics default to today's weekday and the current hour (nearest open hour) from the demo clock.
+- 2026-10-23 (Phase 1): The discovery logo links to the presenter hub, so product screens need no visible presenter control.
 
 ## Visual references
 
 - 14 app screenshots were added on 2026-10-23 and inventoried in `reference-screens/README.md`. Measured tokens are in visual-spec.md.
 - Missing references: postpone sheet, waiting statistics, reservation detail, checkout, manager screens.
-- Reviewed against references: `customer/ui-sample.html` (see visual-spec.md, Screen comparisons).
+- Reviewed against references: `customer/ui-sample.html`, `customer/discovery.html`, `customer/restaurant.html` (see visual-spec.md, Screen comparisons).
+- Still wanted: a capture of the existing weekday/time-slot statistics screen, to replace the provisional chart form.
 
 ## Backlog
 
@@ -138,3 +380,21 @@ Append a short entry at the end of each session. Do not delete prior findings.
   - All executed checks pass; unverified items are listed above.
   - Nothing committed.
   - Suggested commit: `phase-0: visual inventory, scaffold, versioned store, presenter hub`.
+- 2026-10-23, Phase 1:
+  - Discovery, restaurant detail (r1/r2/r3 variants, not-found), and weekday/time-slot statistics with collecting states are complete.
+  - 40/40 Phase 1 checks, 38/38 Phase 0 regression, 17/17 self-check.
+  - Nothing committed.
+  - Suggested commit: `phase-1: discovery, restaurant detail, waiting statistics with collecting states`.
+- 2026-10-23, visual-fidelity pass (user request, before Phase 2):
+  - App-like home and detail, real r1/r2 listing details and photos from captures, booking picker, Pretendard.
+  - Guidelines updated (CLAUDE.md, requirements, design-system, decisions, data-model, screen-map, source-notes).
+  - robots.txt respected.
+  - 44/44 fidelity, 38/38 Phase 0, 19/19 self-check.
+  - Nothing committed.
+  - Suggested commit: `phase-1: app-fidelity home and detail with real listings, booking picker, Pretendard`.
+- 2026-10-23, 49-capture fidelity pass (user request, before Phase 2):
+  - Tabbed detail panels, calendar and confirm sheets, the app's statistics chart, search, saved and my-dining from the new captures; r3 = 스시렌.
+  - Online references recorded; the 웨이팅 미루기 conflict is flagged for the user.
+  - 52/52 acceptance, 38/38 Phase 0, 20/20 self-check.
+  - Nothing committed.
+  - Suggested commit: `phase-1: apply 49 app captures (tabbed detail, calendar sheet, statistics chart, search, saved, my-dining)`.

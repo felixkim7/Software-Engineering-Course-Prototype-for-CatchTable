@@ -6,8 +6,11 @@ work under both a local server and a project subpath. Preserve IDs across naviga
 | ID | Route under prototype/ | Content / actions | Phase |
 |---|---|---|---|
 | D00 | index.html | Presenter role/identity selector, implemented scenario presets, reset and clock tools | 0 onward |
-| C01 | customer/discovery.html | Fictional restaurant list, local filters, cards opening detail | 1 |
-| C02 | customer/restaurant.html?restaurantId=r1 | Header/photo/tabs, booking or waiting area, statistics, active ticket and contextual CTA | 1-3 |
+| C01 | customer/discovery.html | App home: search, brand tabs, location, banners, category grid, restaurant list with filters, bottom nav | 1 (fidelity pass) |
+| C02 | customer/restaurant.html?restaurantId=r1 | Header icons, photos, summary, tabs that switch panels (홈/소식/메뉴/사진/리뷰/방송/매장정보 as the fixture has them), coupon, booking date chips + calendar sheet + visit confirmation, waiting statistics chart, AI summary, optional ribbon, save/phone/CTA bar; active ticket later | 1-3 |
+| C10 | customer/saved.html | 저장 tab: recent-views collection, restaurants saved by the active customer with photos and date chips | 1 (fidelity pass) |
+| C12 | customer/search.html | Search: recent views, suggestion chips, hashtags; results as restaurant cards | 1 (fidelity pass) |
+| C11 | customer/my-dining.html | 마이다이닝 tab: 나의 예약 with 방문예정/방문완료/취소·노쇼 empty states now; waiting tickets and reservations later | 1 (fidelity pass), 2-5 |
 | C03 | customer/waiting.html?ticketId=... | Party/position/status, postpone choices, cancel, call state | 2 |
 | C04 | customer/cancellation-queue.html | Join conditions, pending requests, withdraw, open current offer | 3 |
 | C05 | customer/offer.html?offerId=... | Exclusive offer, countdown, owner check, decline, proceed to checkout | 3-4 |

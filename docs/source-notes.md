@@ -36,6 +36,11 @@ that every separate chat was retrieved. The package is self-contained for develo
     App layouts must instead follow actual app references. Do not turn the app into slides.
 11. Explanatory slide callouts were removed in the design conversation. They are not
     product UI and should not be added as banners. Domain rules still apply internally.
+12. 2026-10-23: the user supplied 14 app captures and then asked for maximum visual
+    fidelity before Phase 2: home extras, detail extras, booking picker, Pretendard, and
+    real restaurant information and photos. The official site's robots.txt forbids
+    automated agents, so real data comes only from the user's captures. Unimplemented
+    controls stay visible and explain on tap. Fake reviews or menus are never invented.
 
 ## Unverified product details
 

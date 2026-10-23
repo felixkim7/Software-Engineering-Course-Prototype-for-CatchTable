@@ -30,16 +30,25 @@ systems are simulated services, never live integrations.
 - Vanilla HTML, CSS, and JavaScript with ES modules. No framework, TypeScript,
   bundler, build step, backend, real login, real booking, real payment, or real messaging.
 - Use local mock records and one namespaced localStorage store. Never collect real
-  card details or personal information. Fictional fixtures only.
+  card details or personal information. Customers, managers and every operational record
+  (availability, deposits, waiting, statistics, payments, notifications) are fictional.
+  Restaurant fixtures r1/r2 show real public CatchTable listing details and photos
+  transcribed or cropped from the user's captures (provenance in docs/assets.md); r3 is the
+  booking-only 스시렌 (2026-10-23 captures). Never present mock operational
+  data as a real restaurant's policy, and never invent reviews or menus for a real restaurant.
 - Serve over HTTP with VS Code Live Server or `python -m http.server 5500` from the
   project root. Open `/prototype/`. Do not rely on file://.
 - All documentation, code identifiers, comments, and commit suggestions are English.
   Following the supplied previous prototype convention, end-user UI copy is Korean
   for the class presentation; keep it in one strings module. The documents describe
   UI labels by their English meanings. Do not mix developer instructions into the UI.
-- Prefer local assets and system fonts with fallbacks. No runtime dependency on a CDN.
+- Local assets only; no runtime dependency on a CDN. Pretendard (SIL OFL) is bundled in
+  prototype/assets/fonts with its licence.
 - Reproduce the real app's visual language from user-supplied references, not the
   presentation slides. Orange/white slide styling alone is not an app design spec.
+  As of 2026-10-23 the user asked for maximum fidelity: app elements that the demo does
+  not implement (brand tabs, most categories, 내 주변, MY, alerts, 함께 고르기, ...) are shown
+  and, on tap, give the one shared "not in this demo" message. Never fake a success.
 - Do not claim production-grade locking, security, availability, or performance from
   a browser-only simulation. See `docs/architecture.md` for the supported demo model.
 
@@ -49,9 +58,10 @@ Read `docs/requirements.md`, `docs/decisions.md`, and the current phase specific
 Use `docs/source-notes.md` to understand the prior decisions and their provenance.
 User corrections override older documents. For functionality, requirements and domain
 rules win; for visuals, supplied screenshots win. Do not copy an As-Is flaw into To-Be.
-Screenshots and logo are NOT bundled. See `docs/reference-screens/README.md`.
-If references are missing, complete a documented provisional visual spec and continue;
-do not pretend a placeholder is an official asset or block unrelated work.
+The user's app captures, the logo and the capture checklist are in
+`docs/reference-screens/README.md`. If references are missing, complete a documented
+provisional visual spec and continue; do not pretend a placeholder is an official asset
+or block unrelated work.
 
 ## 4. Incremental workflow
 
@@ -91,8 +101,9 @@ prototype/
   customer/                     # Mobile layouts, one page module per page
   manager/                      # Desktop layouts, same domain records
   assets/
-    css/                        # tokens, base, components, mobile, desktop
-    images/                     # Local approved/copyright-appropriate assets
+    css/                        # tokens, base, components, mobile, detail, desktop
+    fonts/                      # Pretendard variable woff2 + OFL licence
+    images/                     # Local approved assets (crops of user captures; see docs/assets.md)
     js/
       core/                     # store, seed-data, clock, format, strings, state-machine
       services/                 # waiting, allocation, payment, notification, late-arrival
@@ -149,6 +160,12 @@ convenience templates; the plain-text prompts remain the portable fallback.
 
 Official CatchTable website:
 https://app.catchtable.co.kr/
+
+The site's robots.txt disallows all automated agents except search engines
+(`User-agent: * / Disallow: /`, checked 2026-10-23). Do not crawl, script, or download
+from it, and do not help bypass it. Real content comes from the user's manual captures
+(checklist in docs/reference-screens/README.md). The guidance below applies only to
+what a person views manually.
 
 Before implementing the UI for each phase, inspect the relevant
 pages on the official website when browser access is available.

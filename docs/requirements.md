@@ -17,8 +17,15 @@ Payment and notification are mock services. No external API or live customer con
   be seeded; ordinary booking, refund admin and account systems need not be fully rebuilt.
 - Context only: platform policy administration, merchant onboarding, real account auth,
   review editing, real settlement, POS, delivery/pickup and production integrations.
-  Do not show dead clickable controls for unimplemented features. Hide them or label them
-  unavailable for this demo. Do not add unrelated functionality to fill space.
+- Visual fidelity (user request, 2026-10-23):
+  - The home screen shows brand tabs, banner carousel, category grid and the 5-tab bottom nav.
+  - The detail screen shows photos, rating/review count, the 홈/메뉴/사진/리뷰/매장정보 tabs,
+    header icons, save/phone buttons, AI summary, coupon, and the 날짜·인원·시간 picker.
+  - Light local behaviour where it is cheap and honest: search, filters, two categories,
+    save list, coupon claim, link copy, tab scrolling, mock availability.
+  - Every other visible control explains on tap that it is not part of this demo
+    (one shared message). No control may simulate a success that did not happen.
+  - Ordinary booking payment remains out of scope.
 
 ## Functional traceability
 

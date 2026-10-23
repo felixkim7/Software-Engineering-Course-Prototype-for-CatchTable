@@ -7,7 +7,8 @@ import { STORAGE_KEY, SCHEMA_VERSION, POLICY } from './config.js';
 import { createSeed, DOMAIN_COLLECTIONS, FIXTURE_COLLECTIONS } from './seed-data.js';
 
 const changes = new EventTarget();
-let status = 'ok';   // 'ok' | 'corrupt' | 'unavailable'
+let status = 'ok';   // 'ok' | 'outdated' | 'corrupt' | 'unavailable'
+const WRITE_BLOCKED = { outdated: 'STORAGE_OUTDATED', corrupt: 'STORAGE_CORRUPT' };
 let cachedRaw;       // raw string that `current` was parsed from or saved as
 let current = null;  // newest snapshot; memory-only while storage is unavailable or corrupt
 
@@ -54,10 +55,11 @@ function load() {
   let parsed = null;
   try { parsed = JSON.parse(raw); } catch { /* reported as corrupt below */ }
   if (!isValidSnapshot(parsed)) {
-    // No migrations exist yet (schema v1). Leave the unreadable data untouched and render
+    // No migrations: an older schema or unreadable data is left untouched, and pages render
     // from a memory-only seed until the presenter resets explicitly. Keeping the last known
     // epoch makes that reset still invalidate callbacks scheduled earlier in this tab.
-    status = 'corrupt';
+    const version = parsed?.meta?.schemaVersion;
+    status = Number.isInteger(version) && version < SCHEMA_VERSION ? 'outdated' : 'corrupt';
     return (current = createSeed(Date.now(), current?.meta.scenarioEpoch ?? 1));
   }
   status = 'ok';
@@ -84,7 +86,7 @@ export function getStorageStatus() {
  */
 export function commit(mutate) {
   const state = load();
-  if (status === 'corrupt') return { ok: false, reason: 'STORAGE_CORRUPT' };
+  if (WRITE_BLOCKED[status]) return { ok: false, reason: WRITE_BLOCKED[status] };
   const next = structuredClone(state);
   const rejection = mutate(next);
   if (rejection) return rejection;

@@ -1,6 +1,17 @@
+/* Pretendard (SIL OFL 1.1, see ../fonts/OFL.txt), the typeface the official web app preloads. Local file only. */
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("../fonts/PretendardVariable.woff2") format("woff2-variations"),
+       url("../fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
   margin: 0;
@@ -30,6 +41,9 @@ a { color: var(--color-link); }
 .text-section { font-size: var(--font-section); font-weight: 700; line-height: var(--line-title); }
 .text-secondary { color: var(--color-text-secondary); }
 .text-caption { font-size: var(--font-caption); color: var(--color-text-secondary); }
+
+/* `hidden` wins over component display rules (disclosures, tab panels, sheets) */
+[hidden] { display: none !important; }
 
 .visually-hidden {
   position: absolute;

@@ -112,12 +112,13 @@ function buildPresetsPanel() {
       h('span', { class: 'hub-hint' }, T.unavailable)))));
 }
 
-function buildScreensPanel() {
+function buildScreensPanel(state) {
   const unavailable = (label) => h('li', {}, h('span', {}, label), h('span', { class: 'hub-hint' }, T.unavailable));
-  const link = (label, path) => h('li', {}, h('a', { href: pageUrl(path) }, label));
+  const link = (label, path, params) => h('li', {}, h('a', { href: pageUrl(path, params) }, label));
   return panel(T.screensHeading,
     h('ul', { class: 'hub-list' },
-      unavailable(T.customerApp),
+      link(T.customerApp, 'customer/discovery.html'),
+      state.restaurants.map((restaurant) => link(T.restaurantLink(restaurant), 'customer/restaurant.html', { restaurantId: restaurant.id })),
       unavailable(T.managerApp),
       link(T.uiSample, 'customer/ui-sample.html'),
       link(T.selfCheck, 'tests/index.html')));
@@ -141,15 +142,16 @@ function refresh() {
 }
 
 document.title = T.pageTitle;
+const initialState = getState();
 document.getElementById('app').replaceChildren(
   buildHeader(),
   buildStorageBanner(),
   h('p', { class: 'notice' }, T.mockNotice),
   h('div', { class: 'hub-grid' },
     buildStatePanel(),
-    buildIdentityPanel(getState()),
+    buildIdentityPanel(initialState),
     buildPresetsPanel(),
-    buildScreensPanel()),
+    buildScreensPanel(initialState)),
 );
 refresh();
 subscribe(refresh);

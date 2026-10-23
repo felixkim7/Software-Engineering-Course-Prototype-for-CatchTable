@@ -15,7 +15,7 @@ in that file are recorded for the phase that first needs them.
 | Token | Value | Status | Evidence |
 |---|---|---|---|
 | brand | #FF3D00 | Measured | CTA fill (183123, 183234), user logo.svg fill |
-| primary (button fill) | #DD3500 | Deviation | White on #FF3D00 is 3.55:1; design-system.md requires 4.5:1 for normal text. #DD3500 gives 4.58:1. Brand orange kept for logo, icons and large numerals (3:1 large-text rule) |
+| primary (button fill) | #FF3D00 | Measured (since fidelity pass 2026-10-23) | Matches the app. White labels on it are 19px bold, which counts as large text, so 3.55:1 meets the 3:1 rule. #DD3500 is kept as `primary-strong` for small white text such as banner tags (4.58:1) |
 | primary-text (small orange text) | #C93000 | Deviation | Badge text measured #F83F06 on #FFF0EB is 3.32:1; #C93000 gives 4.84:1 |
 | brand-soft | #FFF0EB | Measured | "매장" badge background (183200) |
 | danger | #DC1B1C | Measured | "네, 취소할게요" fill (183450); white text 4.98:1 |
@@ -30,7 +30,14 @@ in that file are recorded for the phase that first needs them.
 | surface-muted | #F7F8FA | Measured | My-waiting band and info box (183416); notice panel #F9F9F9 treated as same |
 | surface-disabled | #F4F4F4 | Measured | Disabled CTA fill (183200) |
 | chip | #F3F4F6 (text #626F78) | Measured | Feature chips (183200); 4.69:1 |
-| segmented-bg | #EAEFF3 | Measured | 예약/웨이팅 control; not yet implemented |
+| segmented-bg | #EAEFF3 | Measured | 예약/웨이팅 control (183200); also used for the statistics weekday picker |
+| segmented selected border | #7F8D96 | Measured | Selected option outline (183200); 3.41:1 non-text |
+| segmented inactive text | #656565 | Deviation | Measured #A8B0B3 is about 2:1 on #EAEFF3; secondary grey gives 5.03:1 |
+| search field | #F5F5F5 | Measured | Home search pill (161246); placeholder uses #656565 (5.4:1) instead of a lighter grey |
+| filter chip (selected) | ink fill, white text | Assumption | Discovery filters are not in the references |
+| chart line / area | #3375DB / #ECF3FD | Measured | Waiting chart (173602); line 4.46:1 on white (graphics need 3:1); selected point and dashed marker in brand orange |
+| time chip | #FFEAE2 fill, #F9B9A3 border, #C93000 text | Measured, lightened | Booking sheet (171404); fill lightened from about #FED8CB so the text reaches 4.64:1 |
+| suggestion chip | #FCEFF6 fill, #8E2A6B text | Measured | Search (173403); 6.99:1 |
 | border | #E4E4E7 | Measured | Outlined buttons #E4E4E4 / #DEDFE3, list card #E9E9EB |
 | divider / section band | #F0F0F0 | Measured | Card border, 8 px section band (183234) |
 | toast / tooltip | #474747 | Measured | Tooltip (183410); used for toast |
@@ -43,15 +50,15 @@ in that file are recorded for the phase that first needs them.
 
 | Role | Value | Status |
 |---|---|---|
-| font stack | "Pretendard Variable", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif | Assumption: official web preloads Pretendard; not bundled (no CDN, local files only). Static "Pretendard" omitted because this machine has only its Regular weight, which would synthesize bold |
+| font stack | "Pretendard Variable" (bundled woff2, OFL), then "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui | Official web preloads Pretendard; bundled locally since the fidelity pass |
 | caption / chip | 12px | Estimated |
 | body-sm | 14px | Estimated (descriptions) |
 | body | 15px / 1.5 | Estimated (meta rows) |
 | button | 16px, 600 | Estimated (tabs, outlined buttons) |
-| cta | 17px, 700 | Estimated (CTA labels) |
+| cta | 19px, 700 | Deviation: app looks about 17px; 19px bold makes white-on-#FF3D00 large text |
 | header | 18px, 700 | Estimated (back-arrow page titles) |
 | section | 20px / 1.4, 700 | Estimated (confirm-screen question, section titles) |
-| title | 24px / 1.3, 700 | Estimated (restaurant name) |
+| title | 24px / 1.3, 700 (detail name 22px) | Estimated; detail text calibrated by matching text widths against 183425 |
 | display | 32px, 700 | Estimated ("3번째" numeral) |
 
 ## Size, spacing and shape
@@ -78,9 +85,39 @@ in that file are recorded for the phase that first needs them.
 - Bottom action bar on detail: save icon with count, phone icon, then CTA filling the rest.
 - Dialog: centered white card inside 20 px gutters, centered bold title, two equal buttons
   (outlined secondary left, filled action right).
-- Bottom sheet: white, 16 px top radius, title row with close icon, divider below title.
+- Bottom sheet: white, 16 px top radius. The 날짜·인원·시간 sheet (171404) has no title row: "오늘" link, month
+  navigation, 7-column calendar (selected day = filled orange circle, past days grey), party circles,
+  open times only as pale-orange chips, 닫기. Tapping a time closes it and opens the visit
+  confirmation sheet (171732: title with close icon, orange rule, restaurant card, 취소/확인).
+- Detail tabs switch panels (171138: the 메뉴 tab shows only menu content); the tab bar sticks
+  under the header and scrolls horizontally when a restaurant has 7 tabs (스시렌, 173218).
 - Section separation: full-bleed 8 px #F0F0F0 band, not cards with margins.
 - Status uses text plus color (orange numerals with units), never color alone.
+
+## Fidelity-pass deviations (2026-10-23)
+
+- **Home header icons:** 40px wide (the app spaces its two icons 34px apart). Above the WCAG 2.2 AA 24px target; below our 44px default.
+- **Small app-sized controls** (함께 고르기, Blue Ribbon chip, review link, 위치) keep their size, with an invisible 44px hit area.
+- **Subway line badges** use official Seoul line colors with white text (2.1-4.1:1), as in the app. The adjacent station text carries the information.
+- **AI summary accent** gradient is #E8366F to #E5512A (both at least 3:1 at 20px bold).
+- **Text-size calibration:** the capture device is wider than 390px, so app text measures about 10-15% smaller relative to screen width. Detail and home text sizes were reduced by about 10%, but not below 11px.
+
+## Waiting statistics (from capture 173602)
+
+The app's own chart, "요일별 평균 웨이팅 시간 Beta", replaced the provisional bar list:
+- Single-series line + area over hours 6-24 (x labels every 2 h), recessive grid, no legend.
+- Selected hour: orange point with halo and a dashed orange marker; tooltip "평균 N팀 | M분".
+- Weekday circles Monday first; the selected one has an orange ring; "대기 많음" badge on the
+  busiest weekday.
+
+To-Be additions:
+- A caption with the 4-week period and update time.
+- Hours with fewer than 5 records break the line and read "수집 중"; they never draw at 0.
+- The tooltip sits in a band above the plot, so unlike the app it never hides a nearby peak.
+- A live text line repeats the selection with the record count.
+- A note says it is not a real-time forecast.
+- Keyboard and screen-reader access through a visually hidden radio group of hours.
+- A restaurant with no sufficient cell shows a collecting panel in the same section.
 
 ## Reference inventory
 
@@ -94,3 +131,10 @@ the same palette.
 |---|---|---|---|---|
 | customer/ui-sample.html | 183123 (header, CTA), 183450 (dialog), 183416 (card, band) | 390x844, 360x780 | Neutral sample only. Header, gutter, 8 px bands, sticky CTA and centered two-button dialog match the references; CTA orange is darker (deviation above); Noto Sans KR renders instead of Pretendard; dialog radius 12 vs about 10 measured | Checked from headless Edge screenshots 2026-10-23 |
 | index.html (hub) | none (presenter tool, not an app screen) | 1440x900, 1024x768 | Inferred layout using the same tokens | Checked from headless Edge screenshots 2026-10-23 |
+| customer/discovery.html (fidelity pass) | 161246, 183416 | 390x844, 360x780, side-by-side image | Matches header, brand tabs, location row, banner (real crop), 20 category icons, bottom nav. Our banners 2-3 are restaurant photos with our copy. "맛집 둘러보기" list replaces the uncaptured "어디로 가시나요?" section. Text sizes calibrated about 10% down toward the capture's proportions | Checked 2026-10-23 |
+| customer/discovery.html (49-capture pass) | 170629, 170655 | 390x844, 360x780 | Adds the "어디로 가시나요?" area tiles (real crops) with the 내 주변 pill, 7 brand tabs, a search link to C12, and review counts on cards. Price-band BEST and Michelin sections are not reproduced | Checked 2026-10-23 |
+| customer/restaurant.html (49-capture pass) | 171054-171404, 171546-171646, 171732, 173157-173324, 173602 | 390x844, 360x780 | Tabs switch panels: menu with thumbnails and boards, photo filters and grid, review distribution (no bodies), store info with map, facilities, guides and details, plus 소식/방송 for 스시렌. Calendar sheet and visit confirmation match 171404/171732; statistics match 173602 apart from the To-Be additions; ribbon above the bar for 스시렌. The weekly-hours and second-station rows expand. Not reproduced: the app-install banner, review bodies, live viewer counts | Checked 2026-10-23 |
+| customer/search.html | 173403 | 390x844, 360x780 | Matches the bordered box with blue 날짜·인원, recent-view chips, pink suggestion chips and hashtags. Recent searches and name-based suggestions (personal) are replaced by generic suggestions; the "어떤 매장을 찾으세요?" cards and benefit banner are omitted | Checked 2026-10-23 |
+| customer/saved.html | 173436 | 390x844, 360x780 | Matches header (저장/추천, badge, 새 컬렉션), collections, 저장한 매장 N, 함께고르기, picker bar, sort chips, entries with photos and date chips. Lists the demo customer's saves, not the capture's. "추천" grey darkened to 4.5:1 | Checked 2026-10-23 |
+| customer/my-dining.html | 173505, 173513, 173524 | 390x844, 360x780 | Matches title, 나의 예약/나의 알림 underline tabs, filled filter chips, empty-state copy and button. Benefit banner and personal recommended searches omitted | Checked 2026-10-23 |
+| customer/restaurant.html (fidelity pass) | 183144, 183200, 183347, 183357, 183425, 183433 | 390x844, 360x780, side-by-side image | Matches header icons and scrolled title, photo carousel, Blue Ribbon chip, name + 함께 고르기, rating row, subway badges, info rows, tag chips, tabs, coupon, segmented control, date chips, 예약 오픈 일정, AI summary, save/phone/CTA bar. Not reproduced: "N명이 보고 있어요" (fake live data), app-install banner. Picker sheet, menu/review/info sections and statistics are provisional until captured | Checked 2026-10-23 |

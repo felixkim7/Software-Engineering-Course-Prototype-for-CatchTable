@@ -25,7 +25,8 @@ Customer: 390px reference viewport, fluid 360px to 430px, centered phone-width c
 large displays. No decorative phone hardware required. Sticky bottom CTA has safe-area and
 content padding; it must not cover the last row. Manager: useful at 1024px and 1440px widths,
 with horizontal scrolling confined to necessary data tables rather than the whole page.
-Use local fallback fonts. A missing logo should use a plain text brand mark, not a fabricated logo.
+Typeface: Pretendard Variable, bundled locally (SIL OFL), with system Korean fallbacks. A missing logo
+should use a plain text brand mark, not a fabricated logo.
 
 ## Components
 
@@ -37,11 +38,18 @@ Do not build all components up front: add domain-specific ones in their phases.
 
 ## Accessibility and content
 
-Color is never the only status cue. Use text + optional icon, 44px minimum touch targets,
+Color is never the only status cue. Use text + optional icon, 44px minimum touch targets
+(app-sized small controls keep their look and get an invisible 44px hit area; the home header's
+two icons use the app's 40px spacing, above the WCAG 2.2 AA 24px minimum),
 visible focus, labels, contrast at least 4.5:1 for normal text, reduced-motion support.
 Trap focus in modal dialogs, Escape to close where safe, restore focus to triggering control.
 Announce a meaningful state change; do not announce a countdown every second.
 Clearly distinguish approximate waiting estimates, historical medians and current queue position.
+White text on the brand orange #FF3D00 is only 3.55:1, so white labels on it must be large text
+(>= 18.66px bold, e.g. the 19px CTA); small orange text uses #C93000. Seoul subway line badges keep
+their official colors, as in the app; the station text beside them carries the information.
+Unimplemented app controls stay visible for fidelity and answer a tap with the shared
+'not in this demo' toast; they never pretend to succeed.
 No 'FR-03', 'mock API', debug control, slide-style takeaway banner or engineering footnote
 in the normal customer/manager flow. Keep a mock-payment notice where it informs user choice.
 

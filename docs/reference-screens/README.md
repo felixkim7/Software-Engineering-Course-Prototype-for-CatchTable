@@ -29,15 +29,124 @@ Filenames are kept as supplied. Suggested-name column maps each file to the kit'
 The three "as-is" captures are evidence of the problem the To-Be design fixes. Do not reproduce
 that behavior: the To-Be detail page shows the active ticket and changes the CTA to View My Waiting.
 
-## Not yet supplied
+## Second batch: captured 2026-10-23 (49 files, requested by the checklist below)
+
+Same device and size (1080 px wide). Files are `Screenshot_20261023_<time>_CatchTable.jpg`; only
+the time is listed. 월화식당 (r1), vivo pizza (r2) and 스시렌 (r3) are real listings and are used
+as fixtures (CLAUDE.md, docs/assets.md). Rows marked *personal* show the user's own account
+content (saved list, recent searches, name-based suggestions, visit history). They are layout
+evidence only; the prototype never reproduces them. Review bodies and reviewer nicknames are
+not reproduced either.
+
+| Time | Screen and observed state | Used for |
+|---|---|---|
+| 170629 | Home below the categories: "어디로 가시나요?" area tiles with 인기/핫플 badges and a 내 주변 pill, recently-viewed rows, price-band BEST, Michelin section (long capture) | Home areas, 1 |
+| 170655 | Home top, brand tabs scrolled to 쿠폰 · 예약맛집 · 웨이팅맛집 · 캐치단독 · 피드 | Brand tabs |
+| 171054, 171056 | 월화식당 detail top: photo carousel, Blue Ribbon 2027 chip, name, rating, station/price/hours rows, tags; 171056 has a "캡쳐해서 보내던 매장을…" app banner | r1 summary |
+| 171105 | 월화식당 홈 tab (long): coupon, 예약/웨이팅 segmented, date chips, AI summary, Blue Ribbon banner, menu preview, reviews, photos, facilities, location, details | r1 홈 previews |
+| 171138, 171143, 171148 | 월화식당 메뉴 tab: 메뉴판 thumbnails, category chips, menu items with prices and thumbnails, collapsed drink categories | r1 menu (15 items + sides) |
+| 171211 - 171243 | 메뉴판 viewer 1/10 - 10/10 (full-screen menu boards) | Menu prices and names |
+| 171255 - 171306 | Full-screen photo viewer 1/4 - 4/4 (food) | r1 photos |
+| 171320 | 월화식당 사진 tab: filter chips with counts, two-column grid | Photos panel |
+| 171325 | 월화식당 리뷰 tab top: average, 5-step distribution, sort/filters, 방문목적 chips | Reviews panel |
+| 171341 | 월화식당 매장정보 (long): intro, award, map, address/copy, stations, 길찾기, directions, facilities, guides, phone | Info panel |
+| 171359 | 월화식당 홈 with the tab bar pinned under the header (hours row still collapsed) | Sticky tabs |
+| 171404 | 날짜·인원·시간 sheet: "오늘" link, month nav, calendar (selected day orange circle, past days grey), party circles 1-6, pale-orange time chips (available times only), 닫기 | Booking sheet |
+| 171532 | vivo pizza photo viewer 1/8 (storefront) | r2 photo |
+| 171546 | vivo pizza 홈 (long): summary with expanded weekly hours, booking area with 예약 오픈 일정, AI summary | r2 summary |
+| 171613 | vivo pizza 메뉴 tab: Pizza / Pasta / Appetizer & Side / Beverage, 아이들 메뉴 없음 note | r2 menu |
+| 171630 | vivo pizza 사진 tab: filters 업체 8 · 동영상 4 · 음식 202 · 내부 12 | r2 photos |
+| 171635 | vivo pizza 리뷰 tab top | r2 reviews |
+| 171646 | vivo pizza 매장정보 (long): closed days, notices, capacity | r2 info |
+| 171732 | Visit confirmation sheet "내일 방문이 맞으신가요?": restaurant card, date/time/party icons, no-show note, 취소/확인 | Confirm sheet |
+| 171739 | 예약금 안내: 1인당 10,000원 × 2 = 20,000원, refund policy | Phase 4 |
+| 171752 | Checkout: 7분 hold timer, 예약 정보, 방문 목적, 결제 수단 (no card data visible) | Phase 4 |
+| 173157 | 스시렌 detail top: 스시로드 TOP100 and 더들리 chips, ribbon "최근 인기 급상승! 2달 평점 4.7점 돌파" above the bottom bar | r3 summary, ribbon |
+| 173218, 173253 | 스시렌 홈 and 메뉴 tabs: 7 tabs (소식, 방송), 런치/디너 오마카세, 알러지 note | r3 tabs, menu |
+| 173303, 173308 | 스시렌 사진 and 리뷰 tabs (counts only are used) | r3 photos, reviews |
+| 173324 | 스시렌 매장정보 (long): facilities (7), guides (6), weekly hours, notices, capacity | r3 info |
+| 173403 | Search screen before typing: bordered search box with blue 날짜·인원, recent searches, 최근 본 매장 chips, suggestion chips (pink), "어떤 매장을 찾으세요?", hashtags. *personal*: recent searches, name-based title | Search screen |
+| 173436 | 저장 tab: 저장/추천, "새로 생겼어요!", 새 컬렉션, 최근 본 매장 collection, 저장한 매장 N, 함께고르기, sort chips, entries with photos and date chips. *personal*: the saved list | Saved page |
+| 173449 | 저장 tab scrolled (same layout; *personal*) | Saved page |
+| 173505 | 마이다이닝 나의 예약 / 방문예정 empty state "예약한 매장이 없어요. 가까운 맛집을 지금 찾아보세요!" + orange button; recommended searches card (*personal* title) | My-dining |
+| 173513, 173524 | 마이다이닝 방문완료 and 취소/노쇼 filters. *personal*: visit history including a past 현장웨이팅 ticket | My-dining; Phase 2 visited state |
+| 173602 | Another restaurant's waiting area: 웨이팅 queue by party size (1인 / 2인 / 3인 이상), "요일별 평균 웨이팅 시간 Beta" line chart with tooltip "평균 10팀 \| 16분", weekday circles with "대기 많음" | Statistics chart; Phase 2 queue list |
+
+## Online references (not stored in the repo)
+
+Searched on 2026-10-23 for screens no capture covers. Images were viewed for reference only and
+kept outside the repository (third-party copyright); nothing from them is shipped.
+
+| Source | What it shows | Used for |
+|---|---|---|
+| raonblog.com, "캐치테이블 웨이팅 방법 · 예약 꿀팁 · 예약금 주의사항" (May 2024) | 방문예정 waiting card "현재 나의 순서 82번째" with "순서가 다가오고 있어요!" tooltip, "잠깐, 노쇼는 안돼요" box, 웨이팅 취소 / 웨이팅 미루기 buttons, KakaoTalk "방문 가능 여부 입력하기" prompt, 방문 완료 "웨이팅을 완료했어요! 총 대기시간" | Phase 2 reference |
+| it.dategom.com, "캐치테이블 예약방법 · 웨이팅 성공률" | 웨이팅 미루기 described as moving to the back of the queue | Postponement rule (see below) |
+| zzalmunga.com and gunmaria.com, 예약방법 · 웨이팅 순서 미루기 posts | Same description: postpone moves you to the end of the line, limited number of times | Postponement rule |
+| a-ha.io question 424172ee0914ce708dee90edb5741ccd | User answer: postponement is possible about twice and not after being called; store-dependent | Postponement rule |
+| designcompass.org, 2023-10-24 CatchTable design articles | Brand and UI overview | General visual language |
+
+**웨이팅 미루기 finding (needs a decision before Phase 2).** These sources describe postponement
+as "move to the back of the current queue, about 2 times at most, not after being called".
+`docs/decisions.md` and `docs/source-notes.md` record "move behind 1 or 2 additional eligible
+waiting parties (selectable range)". Neither the captures nor the sources show the postpone
+sheet itself. The business rule was not changed; the user decides which rule Phase 2 uses.
+
+## Capture checklist (requested 2026-10-23)
+
+The official site's robots.txt disallows automated agents (`User-agent: * / Disallow: /`), so
+Claude does not crawl or download from app.catchtable.co.kr. Real content comes from these
+manual captures.
+
+- Save them in this folder with any name that says what they show; long scroll captures are fine.
+- Do not book, register or pay anything.
+- Crop out your name, phone number and any reservation or waiting codes.
+- Review text is not needed.
+
+**Priority:** items 1-7 and 14.
+
+**Status (2026-10-23 batch):** supplied: 1-5, 7 (sheet; the app lists only open times, so no
+마감 chips exist to capture), 8-14. Still missing: 6 for 월화식당 (expanded weekly hours; vivo and
+스시렌 are covered), more vivo full-screen photos (one of 3 supplied), and 15 (postpone sheet).
+
+**A. For each of 월화식당 마포본점 and vivo pizza 공덕점**
+
+| # | Screen | How to get there |
+|---|---|---|
+| 1 | 메뉴 tab | Long capture of the whole menu (names, prices) |
+| 2 | 사진 tab | The photo grid |
+| 3 | 2-3 full-screen photos | Tap photos (food, interior); these become the real images |
+| 4 | 리뷰 tab, top only | Rating summary and keywords |
+| 5 | 매장정보 tab | Long capture: address, phone, weekly hours, closed days, parking, facilities |
+| 6 | Expanded hours | 홈 tab: tap ⌄ next to "오늘 (금) · …" |
+| 7 | Booking sheet | 예약 tab, tap 날짜 · 인원 · 시간. Capture the sheet, then again after picking a date, showing time slots (ideally some 마감) |
+
+**B. One booking-only restaurant (no 웨이팅 tab). Replaces the fictional r3.**
+
+| # | Screen | How to get there |
+|---|---|---|
+| 8 | Detail 홈 tab | Long capture from photos down through the booking area |
+| 9 | 메뉴 and 매장정보 tabs | As in 1 and 5 |
+| 10 | 2 full-screen photos | As in 3 |
+
+**C. App-wide**
+
+| # | Screen | How to get there |
+|---|---|---|
+| 11 | Home below the category icons | "어디로 가시나요?" and the following sections |
+| 12 | Search screen | Tap the home search bar, before typing |
+| 13 | 저장 and 마이다이닝 tabs | Bottom navigation |
+| 14 | Existing waiting statistics | Any restaurant showing 요일별·시간대별 대기 정보 (try the 웨이팅맛집 category) |
+| 15 | 웨이팅 미루기 sheet (optional) | Next time you have a real waiting registration; needed for Phase 2 |
+
+## Not yet supplied (later phases)
 
 | Suggested file | What to capture |
 |---|---|
-| waiting-postpone-sheet.png | Existing postponement range options |
-| waiting-statistics.png | Existing weekday/time-slot statistics at a supporting restaurant |
 | reservation-detail.png | Confirmed reservation detail and existing actions |
-| checkout.png | Booking policy and deposit screen, with private data removed |
+| postpone-sheet.png | 웨이팅 미루기 sheet (Phase 2) |
 | manager-reference.png | Manager layout if available; otherwise design an explicitly inferred layout |
+
+The deposit and checkout screens were supplied as 171739 and 171752.
 
 ## Official website
 

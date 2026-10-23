@@ -6,14 +6,17 @@
 |---|---|
 | Customer | id, displayName |
 | Manager | id, restaurantId, displayName |
-| Restaurant | id, name, district, cuisine, priceBand, image, waitingEnabled, bookingEnabled, policies |
+| Restaurant | id, name, district, cuisine, description, rating, reviewCount, saveCount, photoCount, badges[{kind,label}], photos[], stations[{lines[], name, distanceM}], priceBand, hours {open, close}, weeklyHours?, tags[], ribbon?, coupon, aiSummary, awardBanner?, waitingEnabled, bookingEnabled, booking {maxPartySize, windowDays, times, soldOut [[dayOffset, time or null]], openSchedule?, deposit}, menu {categories[{name, range?, items[{name, price, description, image, badges}]}], notes[], boards[], updatedAt}, reviews {distribution[5..1], purposes[]}, photoFilters[], info {intro, award?, address, map, directions?, facilities[], guides[], phone, closedDays?, notices?, capacity?}, news[], broadcasts[] (fixtures in core/fixtures/) |
+| SavedRestaurant | customerId, restaurantId, savedAt |
+| CouponClaim | customerId, couponId, claimedAt |
+| RecentView | customerId, restaurantId, viewedAt (one per customer and restaurant, newest first) |
 | ReleasedSlot | id, restaurantId, serviceDate, serviceTime, partySize, status, offerId, reservationId |
 | CancellationRequest | id, customerId, restaurantId, serviceDate, serviceTime, partySize, requestedAt, status |
 | PriorityOffer | id, requestId, slotId, ownerId, status, issuedAt, expiresAt, paymentOperationId |
 | PaymentOperation | id, offerId, customerId, amountKRW, status, createdAt, resolvedAt, reservationId |
 | Reservation | id, customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status, sourceOfferId |
 | WaitingTicket | id, customerId, restaurantId, partySize, queueOrder, status, postponementCount, registeredAt |
-| WaitingStatistic | restaurantId, weekday, timeSlot, medianMinutes, sampleCount, periodStart, periodEnd, updatedAt |
+| WaitingStatistic | restaurantId, weekday, timeSlot, avgMinutes, avgTeams, sampleCount, periodStart, periodEnd, updatedAt |
 | LateCoordination | id, reservationId, version, expectedArrival, status, proposedTime, history[] |
 | Notification | id, recipientType, recipientId, entityType, entityId, kind, deliveryStatus, readAt, createdAt |
 | StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, activeRole, activeCustomerId, activeManagerId |
@@ -75,11 +78,11 @@ Reject a response to an obsolete version with a useful refresh message.
 
 ## Required fixture set
 
-Use fictional names and local assets. IDs below are stable technical fixture keys.
+People and operational records are fictional; restaurants r1-r3 are real public listings (see CLAUDE.md). IDs below are stable technical fixture keys.
 
-- r1: booking + waiting, sufficient statistics, deposit 20000 KRW.
-- r2: waiting-enabled, insufficient statistics; same statistics section with collecting state.
-- r3: booking-only, zero deposit; no irrelevant waiting section.
+- r1 월화식당 마포본점 (real listing): booking + waiting, sufficient statistics, deposit 20000 KRW (mock).
+- r2 vivo pizza 공덕점 (real listing): booking + waiting, insufficient statistics; same statistics section with collecting state.
+- r3 스시렌 (real listing): booking-only, zero deposit; no irrelevant waiting section.
 - c1: presenter customer; active role switches between reservation and waiting experiences.
 - c2: next eligible customer; selectable only in presenter tools.
 - c3: an older applicant with a mismatched party size, proving matching before FIFO.

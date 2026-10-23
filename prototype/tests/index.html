@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Foundation self-check</title>
+  <title>Prototype self-check</title>
   <link rel="icon" href="../assets/images/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
@@ -13,11 +13,11 @@
     .pass::before { content: "PASS "; font-weight: 700; color: #1B7F3B; }
     .fail::before { content: "FAIL "; font-weight: 700; color: var(--color-danger); }
   </style>
-  <script type="module" src="foundation.test.js"></script>
+  <script type="module" src="self-check.js"></script>
 </head>
 <body>
-  <h1 class="text-title">Foundation self-check</h1>
-  <p class="text-secondary">Runs store/seed/clock/format checks against the real store, then restores the previous demo data.</p>
+  <h1 class="text-title">Prototype self-check</h1>
+  <p class="text-secondary">Runs store, seed, clock, format, statistics, booking and customer-list checks against the real store, then restores the previous demo data.</p>
   <p id="summary" role="status">Running…</p>
   <ul id="results"></ul>
 </body>

@@ -16,11 +16,15 @@ Keep all values in `core/config.js` when implemented. User instructions may chan
 | Duplicate requests | One active request per customer and exact condition key |
 | Deadline boundary | Valid only when now < expiresAt; equality means expired |
 | Waiting duplicates | One active ticket per customer per restaurant; cross-restaurant limits not modeled |
-| Postponement | Move behind 1 or 2 additional eligible waiting parties; offered choices depend on queue length |
+| Postponement | Move behind 1 or 2 additional eligible waiting parties; offered choices depend on queue length. **Open (2026-10-23):** public posts describe the real app as "move to the back of the queue, about 2 times, not after being called" (docs/reference-screens/README.md, Online references). Unchanged until the user decides |
 | Postponement limits | WAITING tickets only; at most two demo postponements; configurable |
-| Statistics | Fixture median minutes, grouped by weekday/time; last 4 weeks; minimum 5 samples per cell |
+| Statistics | Fixture average wait minutes and average waiting teams per weekday/hour, as the app's "요일별 평균 웨이팅 시간" chart (173602); last 4 weeks; minimum 5 records per cell. Shown as a line chart over hours 6-24; the tooltip sits above the plot so it never hides a peak |
 | Sparse statistics | Mark collecting data for sparse cells/restaurant; never invent zero or precise forecasts |
 | Reservation deposit | KRW 20,000 for booking fixture; zero-deposit fixture for alternative flow |
+| Restaurant fixtures | r1 = 월화식당 마포본점, r2 = vivo pizza 공덕점, r3 = 스시렌 (booking-only); real public listing details, menus and photos from the user's captures of 2026-10-16 and 2026-10-23. Their deposits, availability, waiting and statistics are mock values. Review bodies are not reproduced; only counts and distributions |
+| Ordinary booking availability | Computed per restaurant from fixture patterns: booking window per restaurant (r1 30, r2 60, r3 45 days; the page shows 14 date chips, the calendar the whole window), times listed per restaurant, past times closed, sold-out [day offset, time] pairs (r1 day+1 19:00/19:30 and day+2 18:30/19:00, kept for the Phase 3 cancellation demo; r2 today; r3 day+2). The calendar lists only open times, as the app does. Party size only needs to fit the restaurant's maximum |
+| Recent views / search | Opening a detail page records a per-customer recent view (newest first, no duplicates); search matches every typed term against name, area, cuisine, description, tags, stations and menu names |
+| Saved restaurants / coupons | Per active customer; saving toggles, claiming a coupon twice keeps one claim; save counts show the captured count + 1 when saved |
 | Late report | ETA must be later than booked time and within the same service date |
 | Proposed new time | Customer must explicitly accept; reject leaves original booking time unchanged |
 | Cannot retain | Record response and show contact/next-step guidance; do not auto-cancel or waive fees |
@@ -33,5 +37,5 @@ Do not implement a production seat optimizer, fee engine, identity service or di
 lock. If the actual screenshots show different baseline postponement options, update
 these demo defaults and document the change; do not change the new waiting visibility requirement.
 
-Open choices to confirm during visual review: exact screenshot-derived font, logo variant,
-spacing, manager layout, and statistics chart form. They do not block building a provisional shell.
+Open choices to confirm during visual review: manager layout and the postponement rule above.
+The font (Pretendard), logo and statistics chart form were settled from captures. They do not block building a provisional shell.
