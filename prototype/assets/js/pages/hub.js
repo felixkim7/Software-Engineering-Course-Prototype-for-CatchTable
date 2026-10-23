@@ -2,11 +2,13 @@
 import { STRINGS } from '../core/strings.js';
 import { getState, getStorageStatus, subscribe, resetDemo, setPreference } from '../core/store.js';
 import { now, advance } from '../core/clock.js';
-import { addDays, formatClockTime, formatDateKey, formatDateTime } from '../core/format.js';
+import { addDays, formatClockTime, formatDateKey, formatDateTime, formatKRW } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
 import { applyPreset, PRESET_KEYS } from '../services/presets.js';
 import { addWalkIn } from '../services/waiting.js';
-import { reconcileOffers, releaseSlot, findOffer } from '../services/allocation.js';
+import { releaseSlot, findOffer } from '../services/allocation.js';
+import { reconcile } from '../services/reconcile.js';
+import { compensatePayment, recoveryOperations, resolveUnknownPayment, retryReservationCommit, setPaymentFlag, unknownOperations } from '../services/payment.js';
 import { setFailNextNotification, retryFailedNotifications, failedNotifications } from '../services/notification.js';
 import { dateLabel } from '../ui/cancellation-ui.js';
 import { h } from '../ui/dom.js';
@@ -32,7 +34,7 @@ async function requestReset() {
 function advanceBy(minutes) {
   const result = advance(minutes * MINUTE_MS);
   if (!result.ok) { showToast(STRINGS.errors[result.reason]); return; }
-  const { expired } = reconcileOffers();  // jumping the clock may pass offer deadlines
+  const { expired } = reconcile();  // jumping the clock may pass offer deadlines
   showToast(expired ? `${T.clockAdvanced(minutes)} ${T.offersExpired(expired)}` : T.clockAdvanced(minutes));
 }
 
@@ -190,6 +192,41 @@ function buildNotifyPanel() {
       refs.retryButton));
 }
 
+// Mock payment outcomes: one-shot flags for the next operation, then explicit resolution of each
+// held operation (unknown result, or charge without a saved reservation).
+const PAYMENT_FLAGS = ['failNextPayment', 'deferNextPayment', 'failNextCommit'];
+
+function buildPaymentPanel() {
+  refs.paymentState = h('p', { class: 'hub-hint', role: 'status' });
+  refs.paymentPending = h('ul', { class: 'hub-list' });
+  return panel(T.paymentHeading,
+    h('p', { class: 'hub-hint' }, T.paymentHint),
+    h('div', { class: 'button-row' }, PAYMENT_FLAGS.map((flag) => button(T.paymentFlags[flag], () => {
+      const result = setPaymentFlag(flag, true);
+      showToast(result.ok ? T.flagArmed(T.paymentFlags[flag]) : STRINGS.errors[result.reason]);
+    }))),
+    refs.paymentState,
+    h('h3', { class: 'hub-subtitle' }, T.pendingHeading),
+    refs.paymentPending);
+}
+
+function refreshPayments(state) {
+  refs.paymentState.textContent = T.flagsState(PAYMENT_FLAGS.filter((flag) => state.meta[flag]).map((flag) => T.paymentFlags[flag]));
+  const name = (op) => state.customers.find((c) => c.id === op.customerId)?.displayName ?? op.customerId;
+  const act = (run, ...args) => () => { const result = run(...args); showToast(result.ok ? T.resolved : STRINGS.errors[result.reason]); };
+  const items = [
+    ...unknownOperations(state).map((op) => h('li', {}, h('span', {}, T.unknownItem(op.id, name(op), formatKRW(op.amountKRW))),
+      h('span', { class: 'button-row' },
+        button(T.resolveSuccess, act(resolveUnknownPayment, op.id, 'SUCCEEDED'), 'button--small'),
+        button(T.resolveFail, act(resolveUnknownPayment, op.id, 'FAILED'), 'button--small')))),
+    ...recoveryOperations(state).map((op) => h('li', {}, h('span', {}, T.recoveryItem(op.id, name(op), formatKRW(op.amountKRW))),
+      h('span', { class: 'button-row' },
+        button(T.retryCommit, act(retryReservationCommit, op.id), 'button--small'),
+        button(T.compensate, act(compensatePayment, op.id), 'button--small')))),
+  ];
+  refs.paymentPending.replaceChildren(...(items.length ? items : [h('li', {}, h('span', { class: 'hub-hint' }, T.noPending))]));
+}
+
 function buildScreensPanel(state) {
   const link = (label, path, params) => h('li', {}, h('a', { href: pageUrl(path, params) }, label));
   return panel(T.screensHeading,
@@ -198,6 +235,7 @@ function buildScreensPanel(state) {
       state.restaurants.map((restaurant) => link(T.restaurantLink(restaurant), 'customer/restaurant.html', { restaurantId: restaurant.id })),
       link(T.queueLink, 'customer/cancellation-queue.html'),
       link(T.inboxLink, 'customer/inbox.html'),
+      link(T.reservationsLink, 'customer/reservation.html', { reservationId: 'rv-1' }),
       link(T.managerApp, 'manager/waiting.html'),
       link(T.managerReservations, 'manager/reservations.html'),
       link(T.uiSample, 'customer/ui-sample.html'),
@@ -222,6 +260,7 @@ function refresh() {
   const failed = failedNotifications(state).length;
   refs.retryButton.textContent = T.retryFailed(failed);
   refs.retryButton.disabled = failed === 0;
+  refreshPayments(state);
   refreshClock();
 }
 
@@ -237,11 +276,12 @@ document.getElementById('app').replaceChildren(
     buildPresetsPanel(),
     buildScreensPanel(initialState),
     buildReleasePanel(initialState),
+    buildPaymentPanel(),
     buildWalkInPanel(initialState),
     buildNotifyPanel()),
 );
 refresh();
 subscribe(refresh);
 setInterval(refreshClock, 1000);  // view refresh only; demo time itself comes from clock.now()
-reconcileOffers();
-setInterval(reconcileOffers, 5000);  // the hub also hands on expired offers while it is the open tab
+reconcile();
+setInterval(reconcile, 1000);  // the hub also settles payments and hands on expired offers while open

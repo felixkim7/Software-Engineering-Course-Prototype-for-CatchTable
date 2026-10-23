@@ -1,13 +1,14 @@
 // M01 예약 · 빈자리 (desktop), allocation section: released slots of the manager's restaurant with
 // their live offer and deadline, and the restaurant's cancellation-seat requests in FIFO order.
 // It reads the same records as the customer pages (same request IDs). Allocation is automatic,
-// so the manager only observes it here; bookings join this page in Phase 4.
+// so the manager only observes it here, plus the restaurant's confirmed reservations (UC-PB 12).
 import { STRINGS } from '../core/strings.js';
 import { getState, subscribe } from '../core/store.js';
 import { now } from '../core/clock.js';
-import { formatTimeOfDay } from '../core/format.js';
+import { formatKRW, formatTimeOfDay } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
-import { findOffer, findRequest, matchingQueue, queueRank, reconcileOffers } from '../services/allocation.js';
+import { findOffer, findRequest, matchingQueue, queueRank } from '../services/allocation.js';
+import { reconcile } from '../services/reconcile.js';
 import { managerRestaurant } from '../services/waiting.js';
 import { h } from '../ui/dom.js';
 import { managerHeader } from '../ui/manager-header.js';
@@ -37,10 +38,22 @@ function slotRow(state, slot) {
     h('td', {}, request
       ? [h('strong', {}, customerName(state, offer.ownerId)), h('span', { class: 'mgr-sub' }, `${request.id} · ${offer.id}`)]
       : h('span', { class: 'mgr-sub' }, A.availableNote)),
-    h('td', {}, offer?.status === 'OFFERED' ? h('span', { 'data-expires': offer.expiresAt }, remainingText(offer.expiresAt)) : '–'),
+    h('td', {}, offer?.status === 'OFFERED' ? h('span', { 'data-expires': offer.expiresAt }, remainingText(offer.expiresAt))
+      : A.holdDetail[offer?.status] ? h('strong', { class: 'mgr-hold' }, A.holdDetail[offer.status])
+        : slot.reservationId ? A.bookedAs(slot.reservationId) : '–'),
     h('td', {}, waiting.length
       ? [h('strong', {}, A.queueCount(waiting.length)), h('span', { class: 'mgr-sub' }, waiting.map((r) => `${customerName(state, r.customerId)} (${r.id})`).join(', '))]
       : '0'));
+}
+
+function reservationRow(state, reservation) {
+  return h('tr', { 'data-reservation': reservation.id },
+    h('td', {}, h('strong', {}, reservation.id)),
+    h('td', {}, customerName(state, reservation.customerId)),
+    h('td', {}, conditionText({ serviceDate: reservation.serviceDate, serviceTime: reservation.currentTime, partySize: reservation.partySize })),
+    h('td', {}, reservation.depositKRW ? formatKRW(reservation.depositKRW) : '–'),
+    h('td', {}, reservation.sourceOfferId ? [h('strong', {}, A.source.priority), h('span', { class: 'mgr-sub' }, reservation.sourceOfferId)] : A.source.normal),
+    h('td', {}, h('span', { class: 'mgr-status mgr-status--booked' }, A.reservationStatus[reservation.status])));
 }
 
 function requestRow(state, request) {
@@ -64,8 +77,13 @@ function render() {
   }
   const slots = state.releasedSlots.filter((s) => s.restaurantId === restaurant.id).sort((a, b) => b.releasedAt.localeCompare(a.releasedAt));
   const requests = state.cancellationRequests.filter((r) => r.restaurantId === restaurant.id).sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+  const reservations = state.reservations.filter((r) => r.restaurantId === restaurant.id)
+    .sort((a, b) => `${a.serviceDate}${a.currentTime}`.localeCompare(`${b.serviceDate}${b.currentTime}`));
   app.replaceChildren(h('main', { class: 'mgr' },
     managerHeader(restaurant, manager, 'reservations'),
+    h('section', { class: 'mgr-section', 'aria-labelledby': 'reservations-heading' },
+      h('h2', { class: 'mgr-section__title', id: 'reservations-heading' }, A.reservationsHeading),
+      table(A.reservationColumns, reservations.map((reservation) => reservationRow(state, reservation)), A.emptyReservations, A.reservationsHeading)),
     h('section', { class: 'mgr-section', 'aria-labelledby': 'slots-heading' },
       h('h2', { class: 'mgr-section__title', id: 'slots-heading' }, A.slotsHeading),
       h('p', { class: 'mgr-section__hint' }, A.slotsHint),
@@ -76,11 +94,11 @@ function render() {
 }
 
 document.title = A.pageTitle;
-reconcileOffers();
+reconcile();
 render();
 subscribe(render);
 // Each second: hand expired offers on (writes only when due), then repaint only the countdowns.
 window.setInterval(() => {
-  reconcileOffers();
+  reconcile();
   app.querySelectorAll('[data-expires]').forEach((cell) => { cell.textContent = remainingText(cell.dataset.expires); });
 }, 1000);

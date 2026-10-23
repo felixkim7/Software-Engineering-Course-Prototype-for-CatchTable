@@ -45,7 +45,7 @@ export const sushiren = {
     soldOut: [[2, null]],
     openSchedule: { time: '매일 오전 12:00(00시)', note: '45일간 예약이 가능합니다.' },
   },
-  policies: { depositKRW: 0 },
+  policies: { depositPerPersonKRW: 0 },  // 예약금 0원 tag (173157)
   menu: {
     boards: [],
     notes: ['알러지 식재료 대체 가능'],

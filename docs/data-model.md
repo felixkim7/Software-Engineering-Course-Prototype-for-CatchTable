@@ -13,13 +13,13 @@
 | ReleasedSlot | id (`rs-n`), restaurantId, serviceDate, serviceTime, partySize, status (AVAILABLE/HELD/BOOKED), offerId, reservationId, releasedAt |
 | CancellationRequest | id (`cr-n`, shown to customer and manager), customerId, restaurantId, serviceDate, serviceTime, partySize, requestedAt, status, offerId, endedAt |
 | PriorityOffer | id (`of-n`), requestId, slotId, ownerId, status, issuedAt, expiresAt, endedAt, paymentOperationId |
-| PaymentOperation | id, offerId, customerId, amountKRW, status, createdAt, resolvedAt, reservationId |
-| Reservation | id, customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status, sourceOfferId |
+| PaymentOperation | id (`pay-n`), offerId, customerId, amountKRW, method (DEMO_CARD), status (PENDING/SUCCEEDED/FAILED/UNKNOWN/REFUNDED), processor {outcome SUCCEEDED/FAILED/DEFERRED, readyAt}, details {purposes, requestNote}, createdAt, resolvedAt, reservationId, refundedAt |
+| Reservation | id (`rv-n`), customerId, restaurantId, serviceDate, originalTime, currentTime, partySize, depositKRW, status (CONFIRMED), sourceOfferId, paymentOperationId, purposes[], requestNote, createdAt |
 | WaitingTicket | id (`w-<restaurant>-<number>`), customerId (null for other parties), guest (fictional masked phone), restaurantId, ticketNumber, channel (app/onsite/manual), party {adults, infants}, partySize, queueOrder, status, postponementCount, callCount, registeredAt, calledAt, endedAt, endedBy |
 | WaitingStatistic | restaurantId, weekday, timeSlot, avgMinutes, avgTeams, sampleCount, periodStart, periodEnd, updatedAt |
 | LateCoordination | id, reservationId, version, expectedArrival, status, proposedTime, history[] |
 | Notification | id (`nt-n`), recipientType, recipientId, entityType (offer/waitingTicket), entityId, kind (OFFER_ISSUED/OFFER_EXPIRED/WAITING_CALLED), data (display facts), deliveryStatus (SENT/FAILED), attempts, readAt, createdAt |
-| StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, resetAt, baseDate, activeRole, activeCustomerId, activeManagerId, failNextNotification |
+| StoreMeta | schemaVersion, revision, scenarioEpoch, clockOffsetMs, resetAt, baseDate, activeRole, activeCustomerId, activeManagerId, failNextNotification, failNextPayment, deferNextPayment, failNextCommit |
 
 Queue position is derived from active tickets sorted by queueOrder; it is not a fixed
 number written independently into every page. Cancellation FIFO uses requestedAt and
@@ -37,7 +37,8 @@ PAYMENT_PENDING -> PAYMENT_UNKNOWN | RECOVERY_PENDING | BOOKED.
 A known failed/cancelled payment returns to OFFERED only while the original deadline is
 still valid; otherwise EXPIRED. A zero-deposit confirmation goes from OFFERED to BOOKED.
 PAYMENT_UNKNOWN -> BOOKED | RECOVERY_PENDING | known failure resolution.
-RECOVERY_PENDING -> BOOKED after a successful retry, or REFUNDED after mock compensation.
+RECOVERY_PENDING -> BOOKED after a successful retry, or REFUNDED after mock compensation
+(the request then ends as REFUNDED and the slot is offered to the next request).
 Only after compensation is resolved may the slot be offered again.
 
 Slot: AVAILABLE -> HELD -> BOOKED, or HELD -> AVAILABLE after safe termination.
@@ -92,9 +93,9 @@ People and operational records are fictional; restaurants r1-r3 are real public 
 - r1 queue at reset: 1 called + 6 waiting parties (plus seated/cancelled history); #6 is the app
   ticket the waiting-active preset gives to c1 (3rd in line). r2: one party, so its
   "2팀 이상부터 온라인 웨이팅 가능" rule applies until another party arrives.
-- A confirmed r1 reservation on reset day + 1 at 18:00 for late-arrival coordination.
+- A confirmed r1 reservation on reset day + 1 at 18:00 for late-arrival coordination (rv-1, seeded since Phase 4).
 - Statistics fixture cells with both sufficient and insufficient samples.
 
-Scenario presets (clean-start and waiting-active in Phase 2, cancellation-ready and offer-active in Phase 3): clean-start, waiting-active, cancellation-ready, offer-active,
+Scenario presets (clean-start and waiting-active in Phase 2, cancellation-ready and offer-active in Phase 3, payment-unknown in Phase 4): clean-start, waiting-active, cancellation-ready, offer-active,
 payment-unknown, late-ready. Build presets only when their phase is implemented.
 A preset creates a coherent snapshot, not a visual-only screen override.

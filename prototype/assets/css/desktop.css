@@ -129,3 +129,7 @@ body.desktop { background: var(--color-surface-muted); accent-color: var(--color
 .mgr-status { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-pill); background: var(--color-chip); color: var(--color-chip-text); font-size: 13px; font-weight: 700; }
 .mgr-status--held, .mgr-status--offered { background: var(--color-brand-soft); color: var(--color-primary-text); }
 .mgr-status--available, .mgr-status--queued { background: #E8F1FD; color: #1F5FD1; }
+.hub-subtitle { font-size: var(--font-button); font-weight: 700; }
+.hub-list .button-row { flex-wrap: nowrap; }
+.mgr-hold { color: var(--color-primary-text); }
+.mgr-status--booked { background: #E7F5EC; color: #1B6E3C; }

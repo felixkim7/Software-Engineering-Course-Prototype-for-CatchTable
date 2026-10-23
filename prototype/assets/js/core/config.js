@@ -2,12 +2,11 @@
 // Add each remaining decisions.md value here in the phase that first uses it.
 
 export const STORAGE_KEY = 'catchtable-prototype:v1';
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;  // 6: per-person deposits, reservations, payment flags
 export const TIME_ZONE = 'Asia/Seoul';
 
 export const POLICY = Object.freeze({
   mockServiceDelayMs: 600,
-  bookingDepositKRW: 20000,
   statsPeriodWeeks: 4,
   statsMinSamples: 5,
   waitingPostponeLimit: 2,  // per ticket, as the app's "한 매장 당 순서를 2번 미룰 수 있어요"

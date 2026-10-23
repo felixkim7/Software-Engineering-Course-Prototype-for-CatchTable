@@ -4,7 +4,8 @@
 import { STRINGS } from '../core/strings.js';
 import { getState, subscribe } from '../core/store.js';
 import { pageUrl } from '../core/nav.js';
-import { customerRequests, findOffer, isLiveRequest, queueRank, reconcileOffers, withdrawRequest } from '../services/allocation.js';
+import { customerRequests, findOffer, isLiveRequest, queueRank, withdrawRequest } from '../services/allocation.js';
+import { reconcile } from '../services/reconcile.js';
 import { h } from '../ui/dom.js';
 import { pageHeader } from '../ui/header.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -67,7 +68,7 @@ function render() {
 }
 
 document.title = `${C.pageTitle} · ${STRINGS.appName}`;
-reconcileOffers();
+reconcile();
 render();
 subscribe(render);
-window.setInterval(reconcileOffers, 5000);  // absolute deadlines; reconcile writes only when an offer is due
+window.setInterval(reconcile, 5000);  // absolute deadlines; reconcile writes only when an offer is due

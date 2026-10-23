@@ -1,7 +1,7 @@
 # Development Progress
 
-Current phase: Phase 3 COMPLETE (2026-10-23).
-Next authorized candidate: Phase 4, which starts only on an explicit user request.
+Current phase: Phase 4 COMPLETE (2026-10-23).
+Next authorized candidate: Phase 5, which starts only on an explicit user request.
 
 | Phase | Status | Verification evidence |
 |---|---|---|
@@ -9,11 +9,83 @@ Next authorized candidate: Phase 4, which starts only on an explicit user reques
 | 1 Discovery and statistics | Complete | 40/40 headless Edge checks, 17/17 self-check page, accessible-name and contrast checks (2026-10-23); after the 49-capture pass: 52/52 acceptance checks, 20/20 self-check page |
 | 2 Waiting | Complete | 22/22 Phase 2 acceptance (W01-W08), 26/26 self-check page, 52/52 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 3 Cancellation queue | Complete | 16/16 Phase 3 acceptance (Q01-Q08 through the UI), 35/35 self-check page, 22/22 Phase 2, 53/53 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
-| 4 Priority booking | Not started | None |
+| 4 Priority booking | Complete | 16/16 Phase 4 acceptance (UC-PB, P01-P12 through the UI), 44/44 self-check page, 16/16 Phase 3, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0, accessible-name and contrast checks (2026-10-23) |
 | 5 Late arrival | Not started | None |
 | 6 Integration | Not started | None |
 
-## Current session (2026-10-23, Phase 3: cancellation requests, allocation, exclusive offers)
+## Current session (2026-10-23, Phase 4: priority checkout, payment outcomes, recovery)
+
+- Request: "now go with phase 4".
+- References:
+  - the user's captures 171732, 171739 (예약금 안내) and 171752 (checkout);
+  - no confirmation or reservation-detail screens were found online, so C07 is provisional.
+
+**Files**
+- New:
+  - `services/payment.js` (ledger, checkout, settle, resolve, retry, compensate, flags);
+  - `services/reconcile.js` (settle payments, then expire offers);
+  - `ui/deposit-sheet.js`;
+  - `pages/checkout.js` + `customer/checkout.html` (C06);
+  - `pages/reservation.js` + `customer/reservation.html` (C07);
+  - `css/checkout.css`.
+- Changed:
+  - allocation: exported hand-off; withdraw and decline refused while payment resolves;
+  - fixtures: per-person deposits;
+  - config: schema 6, removed the flat deposit;
+  - seed: rv-1 reservation, payment flags;
+  - presets: paymentUnknown;
+  - offer page: 예약금 안내 → checkout; payment and booked views;
+  - 마이다이닝: reservations in 방문예정 (C08);
+  - inbox: confirmation and refund notices;
+  - M01: 예약 목록, payment holds and booked slots;
+  - hub: payment controls;
+  - all pages now call `reconcile()`;
+  - strings, CSS;
+  - self-check: 9 payment checks.
+
+**Behaviour** (UC-PB 7-12)
+- Confirming:
+  - checks owner, deadline (now < expiresAt) and the 4 required consents;
+  - zero deposit books at once (8b);
+  - otherwise one PENDING PaymentOperation stores the mock processor's answer;
+  - a repeat returns that operation.
+- `settlePayments()` applies due answers in a separate command, so reloads and other tabs find the same result.
+  - Success saves one reservation, ends the offer and request (BOOKED), books the slot and notifies.
+  - A known failure charges nothing and returns to OFFERED while the deadline holds, else EXPIRED with one successor.
+  - DEFERRED becomes UNKNOWN and holds the slot past the deadline.
+  - An armed commit failure leaves RECOVERY_PENDING (charged, held). Retry reuses the charge; a mock refund ends the offer as REFUNDED and only then hands off.
+- Reset invalidates the epoch-guarded payment callback, and a stale callback has no operation to settle.
+
+**Evidence** (headless Edge via playwright-core in the session scratchpad, server `python -m http.server 5577`)
+- Phase 4 acceptance 16/16:
+  - P01/P02: deposit sheet values; pay disabled until the required consents; double-click gives 1 operation, 1 charge, 1 reservation; request text shown as text;
+  - confirmation in the inbox, the 마이다이닝 card, and the manager booking plus BOOKED slot with the same IDs;
+  - P12: reopening checkout or going back redirects; reloading mid-payment settles once;
+  - 8a: the wrong owner sees nothing; passing the deadline on the form expires the offer with no charge and hands off;
+  - P03: failure, form kept, retry;
+  - P04: 스시렌 zero deposit with no operation;
+  - P05/P06: unknown held past the deadline, resolved as success;
+  - P07: unknown resolved as failure after the deadline gives one successor;
+  - P08: commit failure held past the deadline, retry with the same charge;
+  - P09: refund recorded and notified, then c2 gets the offer;
+  - P10: failed confirmation notice, booking intact, retry delivers;
+  - P11: reset mid-payment leaves no trace;
+  - no overflow (360px, 1024px);
+  - no console errors.
+- Self-check 44/44, including P01-P11 domain checks and the expiry boundary.
+- Regressions: Phase 3 16/16, Phase 2 22/22, fidelity 53/53, Phase 0 38/38. Updated for intended changes: 예약하기 now opens the deposit sheet, 마이다이닝 shows rv-1, 5 presets, the seeded reservation time is relative to reset. One Phase 2 run failed once on a toast-timing check; it passed in three reruns.
+- No unnamed controls on checkout, offer, reservation, 마이다이닝, hub or M01. New colour pairs at least 5.1:1.
+
+**Unverified**
+- Real devices and screen readers.
+- Concurrent writers: one active writer tab is supported. localStorage is not a transactional backend; the ledger only prevents double effects within this model.
+- Payment timing is mock: answers after 600 ms of demo time; no real 60 s processor timeout.
+
+**Open items**
+- Ordinary (non-priority) booking still stops at the visit confirmation, by design (out of scope).
+- Reservation cancel/change is not offered.
+
+## Phase 3 session record (2026-10-23)
 
 - Request: "now go with phase 3".
 - References: there are no captures of 빈자리 알림, and web sources are text only (listed in
@@ -558,3 +630,8 @@ Append a short entry at the end of each session. Do not delete prior findings.
   - 16/16 Phase 3, 35/35 self-check, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0.
   - Nothing committed.
   - Suggested commit: `phase-3: cancellation-seat queue, FIFO exclusive offers, inbox and manager allocation view`.
+- 2026-10-23, Phase 4:
+  - Mock priority checkout (예약금 안내, consents, demo card), payment ledger with success/failure/unknown/commit-failure paths, recovery and refund, reservation detail, 마이다이닝 reservations, manager bookings, hub payment controls.
+  - 16/16 Phase 4, 44/44 self-check, all regressions green.
+  - Nothing committed.
+  - Suggested commit: `phase-4: priority checkout with mock payment ledger, unknown holds, commit recovery and reservations`.

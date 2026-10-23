@@ -161,6 +161,29 @@ the captured language: bottom sheets, chips, outlined cards, #FFF0EB/#FFF7F3 ora
 - Manager 예약 · 빈자리: plain white tables in the dashboard palette, with orange (held/offered) and
   blue #1F5FD1 on #E8F1FD (available/queued) status pills.
 
+## Priority checkout and reservation (Phase 4)
+
+- 예약금 안내 sheet follows 171739:
+  - header with the orange rule (shared with the visit-confirmation sheet);
+  - "!" notice;
+  - a bordered table of 1인당 예약금 / x 총 예약 인원 / 합계;
+  - a grey 환불정책 box;
+  - "총 예약금" with the amount in #C93000;
+  - 이전 / 확인.
+- Checkout follows 171752:
+  - X close and restaurant title;
+  - timer chip in #1F5FD1 on #E8F1FD (5.1:1) with the offer's remaining time instead of the app's "7분간 예약 찜";
+  - sections separated by 8px bands;
+  - 방문 목적 pill chips, selected = brand border on #FFF0EB;
+  - one 데모 카드 radio instead of CATCH pay / 일반결제;
+  - total in #C93000 20px/800;
+  - request textarea on #F5F5F5;
+  - "모두 동의합니다." box, consent checkboxes, and the bordered refund table;
+  - fixed bottom summary (예약 정보, 결제금액).
+- The app's "밀어서 결제하기" slider is a normal button ("20,000원 결제하기"). It stays keyboard-operable and is disabled until the required consents are checked, with a visible hint.
+- State screens (processing with a spinner, unknown, recovery, refunded) are centred text blocks with one action. The spinner respects reduced motion.
+- Reservation detail (provisional): a confirmation badge (check on #FFF0EB) shown once, then the 방문예정 ticket layout with a fact list and the refund table.
+
 ## Reference inventory
 
 See `reference-screens/README.md` for the per-file inventory and missing references.
@@ -181,6 +204,8 @@ the same palette.
 | customer/waiting-register.html, waiting.html (Phase 2) | 183123, 183234, 183410, 183416, 183450; velog postpone/cancel screenshots | 390x844, 360x780 | Steppers, confirm card, rules box, registered sheet, ticket card, notice, cancel dialog, postpone list and confirm sheet match. Not reproduced: ads, "주변 맛집" map, KakaoTalk live-activity CTA (실시간 순서 함께 확인하기 → 확인). To-Be: ticket strip on the detail page | Checked 2026-10-23 |
 | manager/waiting.html (Phase 2) | CatchTable dashboard help screenshots (channel.io) | 1440x900, 1024x768 | 접수 switch, totals, tabs, columns and 호출/착석/취소 colours match. Seat-type cards, 3-second undo and 되돌리기 omitted; 웨이팅 등록 explains it is not in the demo | Checked 2026-10-23 |
 | customer/cancellation-queue.html, offer.html, inbox.html; booking sheet sold-out times (Phase 3) | none (provisional, see above) | 390x844, 360x780 | Consistent with the captured sheets, cards and chips; no overflow at 360px | Checked 2026-10-23 |
+| customer/offer.html deposit sheet, checkout.html (Phase 4) | 171739, 171752 | 390x844, 360x780 | Matches the sheet and the checkout structure; demo card and button instead of CATCH pay and the slide control; no overflow at 360px | Checked 2026-10-23 |
+| customer/reservation.html (Phase 4) | none (183416 layout) | 390x844, 360x780 | Provisional | Checked 2026-10-23 |
 | manager/reservations.html (Phase 3) | none (dashboard palette) | 1440x900, 1024x768 | Allocation tables; no overflow at 1024px | Checked 2026-10-23 |
 | customer/my-dining.html | 173505, 173513, 173524 | 390x844, 360x780 | Matches title, 나의 예약/나의 알림 underline tabs, filled filter chips, empty-state copy and button. Benefit banner and personal recommended searches omitted | Checked 2026-10-23 |
 | customer/restaurant.html (fidelity pass) | 183144, 183200, 183347, 183357, 183425, 183433 | 390x844, 360x780, side-by-side image | Matches header icons and scrolled title, photo carousel, Blue Ribbon chip, name + 함께 고르기, rating row, subway badges, info rows, tag chips, tabs, coupon, segmented control, date chips, 예약 오픈 일정, AI summary, save/phone/CTA bar. Not reproduced: "N명이 보고 있어요" (fake live data), app-install banner. Picker sheet, menu/review/info sections and statistics are provisional until captured | Checked 2026-10-23 |

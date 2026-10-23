@@ -1,7 +1,6 @@
 // r1 월화식당 마포본점: public listing details transcribed from the user's app captures of
 // 2026-10-16 and 2026-10-23 (docs/reference-screens). Booking availability, deposit and
 // waiting statistics are MOCK demo values (see restaurant-fixtures.js).
-import { POLICY } from '../config.js';
 
 const item = (name, price, description = null, image = null, badges = []) => ({ name, price, description, image, badges });
 
@@ -44,7 +43,7 @@ export const wolhwa = {
     soldOut: [[1, '19:00'], [1, '19:30'], [2, '18:30'], [2, '19:00']],  // [days after reset, time | null = whole day]
     openSchedule: null,
   },
-  policies: { depositKRW: POLICY.bookingDepositKRW },
+  policies: { depositPerPersonKRW: 10000 },  // MOCK (per person, as vivo's captured 171739)
   menu: {
     boards: ['menu/wolhwa-board-1.jpg', 'menu/wolhwa-board-2.jpg', 'menu/wolhwa-board-3.jpg'],
     notes: [],

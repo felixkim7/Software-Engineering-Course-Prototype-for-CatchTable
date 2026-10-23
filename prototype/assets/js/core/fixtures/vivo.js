@@ -45,7 +45,7 @@ export const vivo = {
     soldOut: [[0, null]],
     openSchedule: { time: '매일 오전 9:00', note: '60일간 예약이 가능합니다.' },
   },
-  policies: { depositKRW: 0 },  // the app showed 10,000원 per person (171739); applied with checkout in Phase 4
+  policies: { depositPerPersonKRW: 10000 },  // 1인당 10,000원, as captured (171739)
   menu: {
     boards: ['menu/vivo-board-1.jpg', 'menu/vivo-board-2.jpg', 'menu/vivo-board-3.jpg'],
     notes: ['아이들 메뉴 없음'],

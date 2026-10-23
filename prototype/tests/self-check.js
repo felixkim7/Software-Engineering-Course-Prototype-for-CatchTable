@@ -17,6 +17,10 @@ import {
   declineOffer, findRequest, joinQueue, offerIsLive, queueRank, reconcileOffers, releaseSlot, withdrawRequest,
 } from '../assets/js/services/allocation.js';
 import { customerNotifications, retryFailedNotifications, setFailNextNotification } from '../assets/js/services/notification.js';
+import {
+  chargesForOffer, compensatePayment, REQUIRED_CONSENTS, reservationForOffer, resolveUnknownPayment, retryReservationCommit, setPaymentFlag, startCheckout,
+} from '../assets/js/services/payment.js';
+import { reconcile } from '../assets/js/services/reconcile.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const results = [];
@@ -54,12 +58,12 @@ try {
     const byId = (list) => Object.fromEntries(list.map((item) => [item.id, item]));
     const r = byId(seed.restaurants);
     const m = byId(seed.managers);
-    assert(r.r1.waitingEnabled && r.r1.bookingEnabled && r.r1.policies.depositKRW === 20000, 'r1 fixture');
+    assert(r.r1.waitingEnabled && r.r1.bookingEnabled && r.r1.policies.depositPerPersonKRW === 10000, 'r1 fixture');
     assert(r.r2.waitingEnabled, 'r2 fixture');
-    assert(!r.r3.waitingEnabled && r.r3.bookingEnabled && r.r3.policies.depositKRW === 0, 'r3 fixture');
+    assert(!r.r3.waitingEnabled && r.r3.bookingEnabled && r.r3.policies.depositPerPersonKRW === 0, 'r3 fixture');
     assert(['c1', 'c2', 'c3'].every((id) => byId(seed.customers)[id]), 'customers');
     assert(m.m1.restaurantId === 'r1' && m.m2.restaurantId === 'r2', 'manager assignment');
-    const unseeded = DOMAIN_COLLECTIONS.filter((name) => !['waitingStatistics', 'waitingTickets'].includes(name));
+    const unseeded = DOMAIN_COLLECTIONS.filter((name) => !['waitingStatistics', 'waitingTickets', 'reservations'].includes(name));
     assert(unseeded.every((name) => seed[name].length === 0), 'later-phase collections not empty');
   });
 
@@ -404,6 +408,117 @@ try {
     const again = joinQueue(condition());
     const fresh = findRequest(getState(), again.requestId);
     assert(again.ok && again.requestId !== 'cr-2' && fresh.requestedAt > findRequest(getState(), 'cr-2').requestedAt, 'rejoin');
+  });
+
+  // ---- Priority checkout and payment outcomes (Phase 4) ----
+  const consented = { consents: REQUIRED_CONSENTS, purposes: ['데이트'], requestNote: '창가 자리 부탁드려요' };
+  const offerState = (id = 'of-1') => getState().priorityOffers.find((o) => o.id === id);
+  const settle = () => { advance(1000); return reconcile(); };  // the mock processor answers after 600 ms of demo time
+
+  await check('P01/P02 success: one operation, one charge, one reservation; repeats change nothing', () => {
+    applyPreset('offerActive');
+    const first = startCheckout('of-1', consented);
+    const repeat = startCheckout('of-1', consented);
+    assert(first.ok && repeat.ok && repeat.operationId === first.operationId && getState().paymentOperations.length === 1, 'double submit');
+    settle();
+    const reservation = reservationForOffer(getState(), 'of-1');
+    assert(offerState().status === 'BOOKED' && reservation?.depositKRW === 20000 && reservation.purposes[0] === '데이트', 'booking');
+    assert(chargesForOffer(getState(), 'of-1').length === 1 && getState().reservations.length === 2, 'counts');
+    const slot = getState().releasedSlots[0];
+    assert(slot.status === 'BOOKED' && slot.reservationId === reservation.id && findRequest(getState(), 'cr-2').status === 'BOOKED', 'slot/request');
+    assert(startCheckout('of-1', consented).reservationId === reservation.id && getState().paymentOperations.length === 1, 'repeat after booking');
+    assert(reconcile().settled === 0 && getState().reservations.length === 2, 'settled twice');
+  });
+
+  await check('8a: expired, wrong-owner or unconsented confirmations are rejected before payment', () => {
+    applyPreset('offerActive');
+    assert(startCheckout('of-1', { consents: ['refund'] }).reason === 'CONSENT_REQUIRED', 'consent');
+    setPreference('activeCustomerId', 'c2');
+    assert(startCheckout('of-1', consented).reason === 'OFFER_NOT_OWNED', 'owner');
+    setPreference('activeCustomerId', 'c1');
+    advance(POLICY.offerLifetimeMs);  // now === expiresAt (plus the ms since issue): expired
+    assert(startCheckout('of-1', consented).reason === 'OFFER_EXPIRED' && getState().paymentOperations.length === 0, 'expired');
+  });
+
+  await check('P03 known failure: no charge, retry before the deadline can succeed', () => {
+    applyPreset('offerActive');
+    setPaymentFlag('failNextPayment', true);
+    startCheckout('of-1', consented);
+    settle();
+    assert(offerState().status === 'OFFERED' && chargesForOffer(getState(), 'of-1').length === 0 && !reservationForOffer(getState(), 'of-1'), 'failure');
+    assert(startCheckout('of-1', consented).ok && settle() && offerState().status === 'BOOKED', 'retry');
+    assert(getState().paymentOperations.length === 2 && chargesForOffer(getState(), 'of-1').length === 1, 'ledger');
+  });
+
+  await check('P04 zero deposit books without a payment operation', () => {
+    resetDemo();
+    const zero = { restaurantId: 'r3', serviceDate: addDays(getState().meta.baseDate, 2), serviceTime: '18:30', partySize: 2 };
+    assert(joinQueue(zero).ok && releaseSlot(zero).ok, 'r3 setup');
+    const offer = liveOffers()[0];
+    const result = startCheckout(offer.id, consented);
+    assert(result.ok && result.reservationId && getState().paymentOperations.length === 0 && reservationForOffer(getState(), offer.id).depositKRW === 0, 'zero deposit');
+  });
+
+  await check('P05-P07 unknown result holds the slot past the deadline; resolution settles once', () => {
+    applyPreset('offerActive');
+    setPaymentFlag('deferNextPayment', true);
+    const { operationId } = startCheckout('of-1', consented);
+    settle();
+    advance(3 * MINUTE);
+    reconcile();
+    assert(offerState().status === 'PAYMENT_UNKNOWN' && getState().releasedSlots[0].status === 'HELD' && findRequest(getState(), 'cr-3').status === 'QUEUED', 'hold');
+    assert(resolveUnknownPayment(operationId, 'FAILED').ok && offerState().status === 'EXPIRED', 'P07 known failure after deadline');
+    assert(liveOffers().map((o) => o.ownerId).join() === 'c2' && chargesForOffer(getState(), 'of-1').length === 0, 'one successor, no charge');
+    assert(resolveUnknownPayment(operationId, 'SUCCEEDED').reason === 'NOTHING_TO_RESOLVE', 'resolved twice');
+    applyPreset('offerActive');
+    setPaymentFlag('deferNextPayment', true);
+    const again = startCheckout('of-1', consented);
+    settle();
+    assert(resolveUnknownPayment(again.operationId, 'SUCCEEDED').ok && offerState().status === 'BOOKED' && getState().reservations.length === 2, 'P06 success');
+  });
+
+  await check('P08/P09 commit failure after charge: retry reuses the charge, or refund before release', () => {
+    applyPreset('offerActive');
+    setPaymentFlag('failNextCommit', true);
+    const { operationId } = startCheckout('of-1', consented);
+    settle();
+    advance(3 * MINUTE);
+    reconcile();
+    assert(offerState().status === 'RECOVERY_PENDING' && getState().releasedSlots[0].status === 'HELD' && liveOffers().length === 0, 'held in recovery');
+    assert(retryReservationCommit(operationId).ok && retryReservationCommit(operationId).ok, 'retry twice');
+    assert(offerState().status === 'BOOKED' && getState().reservations.length === 2 && getState().paymentOperations.length === 1, 'P08 one charge, one reservation');
+    applyPreset('offerActive');
+    setPaymentFlag('failNextCommit', true);
+    const second = startCheckout('of-1', consented);
+    settle();
+    assert(compensatePayment(second.operationId).ok && compensatePayment(second.operationId).reason === 'NOTHING_TO_RECOVER', 'compensate once');
+    const op = getState().paymentOperations[0];
+    assert(op.status === 'REFUNDED' && op.refundedAt && offerState().status === 'REFUNDED' && liveOffers()[0]?.ownerId === 'c2', 'P09 refund then hand-off');
+  });
+
+  await check('P10 a failed confirmation notification leaves the booking confirmed', () => {
+    applyPreset('offerActive');
+    startCheckout('of-1', consented);
+    setFailNextNotification(true);
+    settle();
+    const note = getState().notifications.find((n) => n.kind === 'BOOKING_CONFIRMED');
+    assert(note.deliveryStatus === 'FAILED' && offerState().status === 'BOOKED', 'booking reversed');
+    assert(retryFailedNotifications().ok && reservationForOffer(getState(), 'of-1').status === 'CONFIRMED', 'retry');
+  });
+
+  await check('P11 a payment callback scheduled before a reset cannot touch the new scenario', async () => {
+    applyPreset('offerActive');
+    startCheckout('of-1', consented);
+    const pending = afterMockDelay(reconcile, 50);
+    resetDemo();
+    const outcome = await pending;
+    assert(outcome.reason === 'STALE_EPOCH' && getState().paymentOperations.length === 0 && getState().reservations.length === 1, JSON.stringify(outcome));
+  });
+
+  await check('withdrawing or declining is refused while a payment resolves', () => {
+    applyPreset('offerActive');
+    startCheckout('of-1', consented);
+    assert(withdrawRequest('cr-2').reason === 'PAYMENT_IN_PROGRESS' && declineOffer('of-1').reason === 'PAYMENT_IN_PROGRESS', 'slot dropped');
   });
 } finally {
   if (backup === null) localStorage.removeItem(STORAGE_KEY);

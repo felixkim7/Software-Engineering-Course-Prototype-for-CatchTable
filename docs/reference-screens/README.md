@@ -90,6 +90,8 @@ kept outside the repository (third-party copyright); nothing from them is shippe
 
 | Search 2026-10-23 for 캐치테이블 빈자리 알림 (gogumafarm.kr, acoustic42.com, enolja.com, carfinance.co.kr, velog k-skill notes) | Text only, no usable screenshots: alerts are set per restaurant/date/time, everyone alerted races to book ("by the time you open it, it is gone") | As-Is evidence for Phase 3; its To-Be screens are provisional |
 
+| Search 2026-10-23 for the reservation-complete and reservation-detail screens (CatchTable store help "STEP 4 예약 관리하기", etoday 2024 CATCH pay article, haniseoul global guide) | Text only: paying the deposit confirms the booking; no customer screenshots | C07 is provisional (built from 183416 and 171752) |
+
 **웨이팅 미루기 resolved (2026-10-23).** The user pointed to the velog post: the customer chooses how far
 back to move ("N번째로 미루기"), at most twice, never after being called. decisions.md now follows it.
 

@@ -2,10 +2,10 @@
 // Opening the page marks them read. Failed deliveries appear only after the presenter retries.
 import { STRINGS } from '../core/strings.js';
 import { getState, subscribe } from '../core/store.js';
-import { formatDotDateTime } from '../core/format.js';
+import { formatDotDateTime, formatKRW } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
 import { customerNotifications, markAllRead } from '../services/notification.js';
-import { reconcileOffers } from '../services/allocation.js';
+import { reconcile } from '../services/reconcile.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { pageHeader } from '../ui/header.js';
@@ -13,25 +13,27 @@ import { clockOf, conditionText } from '../ui/cancellation-ui.js';
 
 const I = STRINGS.inbox;
 const app = document.getElementById('app');
-const ICONS = { OFFER_ISSUED: 'bell', OFFER_EXPIRED: 'clock', WAITING_CALLED: 'people' };
+const ICONS = { OFFER_ISSUED: 'bell', OFFER_EXPIRED: 'clock', WAITING_CALLED: 'people', BOOKING_CONFIRMED: 'check', PAYMENT_REFUNDED: 'won' };
+const TARGETS = {
+  offer: (id) => pageUrl('customer/offer.html', { offerId: id }),
+  reservation: (id) => pageUrl('customer/reservation.html', { reservationId: id }),
+  waitingTicket: (id) => pageUrl('customer/waiting.html', { ticketId: id }),
+};
 let unreadAtOpen = new Set();  // keeps this visit's "new" markers after they are marked read
 
-function target(notification) {
-  return notification.entityType === 'offer'
-    ? pageUrl('customer/offer.html', { offerId: notification.entityId })
-    : pageUrl('customer/waiting.html', { ticketId: notification.entityId });
-}
 
 function item(state, notification) {
   const { data, kind } = notification;
   const name = state.restaurants.find((r) => r.id === data.restaurantId)?.name ?? '';
   const copy = I.kinds[kind];
-  const body = kind === 'WAITING_CALLED' ? copy.body(name, data.ticketNumber)
-    : kind === 'OFFER_ISSUED' ? copy.body(name, conditionText(data), clockOf(data.expiresAt))
-      : copy.body(name, conditionText(data));
+  const body = {
+    WAITING_CALLED: () => copy.body(name, data.ticketNumber),
+    OFFER_ISSUED: () => copy.body(name, conditionText(data), clockOf(data.expiresAt)),
+    PAYMENT_REFUNDED: () => copy.body(name, conditionText(data), formatKRW(data.depositKRW)),
+  }[kind]?.() ?? copy.body(name, conditionText(data));
   const unread = !notification.readAt || unreadAtOpen.has(notification.id);
   return h('li', {},
-    h('a', { class: `inbox-item${unread ? ' is-unread' : ''}`, href: target(notification) },
+    h('a', { class: `inbox-item${unread ? ' is-unread' : ''}`, href: TARGETS[notification.entityType](notification.entityId) },
       icon(ICONS[kind] ?? 'bell', 'icon inbox-item__icon'),
       h('span', { class: 'inbox-item__text' },
         h('span', { class: 'inbox-item__title' }, copy.title, unread && h('span', { class: 'visually-hidden' }, ` (${I.unread})`)),
@@ -51,7 +53,7 @@ function render() {
 }
 
 document.title = I.pageTitle;
-reconcileOffers();
+reconcile();
 unreadAtOpen = new Set(customerNotifications(getState()).filter((n) => !n.readAt).map((n) => n.id));
 markAllRead();
 render();

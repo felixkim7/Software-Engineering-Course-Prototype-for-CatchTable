@@ -100,6 +100,16 @@ function waitingTickets(resetAtMs) {
     })));
 }
 
+// A confirmed ordinary booking of c1 (tomorrow 18:00, 2 people, deposit paid earlier) for the
+// 마이다이닝 list now and late-arrival coordination in Phase 5 (data-model fixture set).
+function reservations(baseDate, resetAtMs) {
+  return [{
+    id: 'rv-1', customerId: 'c1', restaurantId: 'r1', serviceDate: addDays(baseDate, 1), originalTime: '18:00', currentTime: '18:00',
+    partySize: 2, depositKRW: 20000, status: 'CONFIRMED', sourceOfferId: null, paymentOperationId: null,
+    purposes: [], requestNote: '', createdAt: new Date(resetAtMs - 2 * 24 * 60 * MINUTE_MS).toISOString(),
+  }];
+}
+
 export function createSeed(resetAtMs, scenarioEpoch = 1) {
   const baseDate = seoulDateKey(resetAtMs);
   return {
@@ -113,7 +123,10 @@ export function createSeed(resetAtMs, scenarioEpoch = 1) {
       activeRole: 'customer',
       activeCustomerId: 'c1',
       activeManagerId: 'm1',
-      failNextNotification: false,  // presenter one-shot (services/notification.js)
+      failNextNotification: false,  // presenter one-shots (services/notification.js, services/payment.js)
+      failNextPayment: false,
+      deferNextPayment: false,
+      failNextCommit: false,
     },
     customers: customers(),
     managers: managers(),
@@ -121,5 +134,6 @@ export function createSeed(resetAtMs, scenarioEpoch = 1) {
     ...Object.fromEntries(DOMAIN_COLLECTIONS.map((name) => [name, []])),
     waitingStatistics: waitingStatistics(baseDate),
     waitingTickets: waitingTickets(resetAtMs),
+    reservations: reservations(baseDate, resetAtMs),
   };
 }

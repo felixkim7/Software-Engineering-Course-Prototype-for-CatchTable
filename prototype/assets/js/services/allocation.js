@@ -15,7 +15,7 @@ const LIVE_REQUEST = new Set(['QUEUED', 'OFFERED']);
 const reject = (reason, extra = {}) => ({ ok: false, reason, ...extra });
 const iso = (ms) => new Date(ms).toISOString();
 const customerId = (state) => state.meta.activeCustomerId;
-const nextId = (list, prefix) => `${prefix}-${Math.max(0, ...list.map((item) => Number(item.id.split('-')[1]))) + 1}`;
+export const nextId = (list, prefix) => `${prefix}-${Math.max(0, ...list.map((item) => Number(item.id.split('-')[1]))) + 1}`;
 
 export const sameCondition = (a, b) => a.restaurantId === b.restaurantId && a.serviceDate === b.serviceDate
   && a.serviceTime === b.serviceTime && a.partySize === b.partySize;
@@ -78,8 +78,11 @@ function allocate(state, slot, nowMs) {
   return offer;
 }
 
-/** Ends a live offer (DECLINED/EXPIRED), ends its request with `requestStatus`, then hands off once. */
-function endOffer(state, offer, offerStatus, requestStatus, nowMs) {
+/**
+ * Ends an offer (DECLINED/EXPIRED/REFUNDED), ends its request with `requestStatus`, then hands the
+ * slot off once. Payment code (services/payment.js) calls it only when a hand-off is safe.
+ */
+export function endOffer(state, offer, offerStatus, requestStatus, nowMs) {
   const request = findRequest(state, offer.requestId);
   const slot = findSlot(state, offer.slotId);
   Object.assign(offer, { status: offerStatus, endedAt: iso(nowMs) });
@@ -147,7 +150,9 @@ export function withdrawRequest(requestId) {
     if (!request) return reject('NOT_FOUND');
     if (request.customerId !== customerId(state)) return reject('REQUEST_NOT_OWNED');
     if (!isLiveRequest(request)) return reject('REQUEST_ENDED');
-    if (request.status === 'OFFERED') endOffer(state, findOffer(state, request.offerId), 'DECLINED', 'CANCELLED', nowMs);
+    const offer = request.status === 'OFFERED' ? findOffer(state, request.offerId) : null;
+    if (offer && offer.status !== 'OFFERED') return reject('PAYMENT_IN_PROGRESS');  // never drop a slot while payment resolves
+    if (offer) endOffer(state, offer, 'DECLINED', 'CANCELLED', nowMs);
     else Object.assign(request, { status: 'CANCELLED', endedAt: iso(nowMs) });
     return undefined;
   });
@@ -162,6 +167,7 @@ export function declineOffer(offerId) {
     if (!offer) return reject('NOT_FOUND');
     if (offer.ownerId !== customerId(state)) return reject('OFFER_NOT_OWNED');
     if (offer.status === 'EXPIRED' || (offer.status === 'OFFERED' && !offerIsLive(offer, nowMs))) return reject('OFFER_EXPIRED');
+    if (['PAYMENT_PENDING', 'PAYMENT_UNKNOWN', 'RECOVERY_PENDING'].includes(offer.status)) return reject('PAYMENT_IN_PROGRESS');
     if (offer.status !== 'OFFERED') return reject('OFFER_ENDED');
     endOffer(state, offer, 'DECLINED', 'DECLINED', nowMs);
     return undefined;

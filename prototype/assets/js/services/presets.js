@@ -1,8 +1,9 @@
 // Presenter scenario presets. Each one starts from a fresh reset (new scenario epoch) and then
 // builds a coherent snapshot through the store; none is a visual-only override.
-import { commit, resetDemo } from '../core/store.js';
+import { commit, getState, resetDemo } from '../core/store.js';
 import { addDays } from '../core/format.js';
 import { releaseSlot } from './allocation.js';
+import { REQUIRED_CONSENTS, setPaymentFlag, startCheckout } from './payment.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -34,6 +35,15 @@ const PRESETS = {
     let condition = null;
     const seeded = commit((state) => { condition = seedCancellationQueue(state); });
     return seeded.ok ? releaseSlot({ ...condition, partySize: 2 }) : seeded;
+  },
+  // As offerActive, then c1 confirms and the mock processor's answer is deferred: once the mock
+  // delay passes (any open page reconciles) the operation is UNKNOWN and the slot stays held.
+  paymentUnknown: () => {
+    const offered = PRESETS.offerActive();
+    if (!offered.ok) return offered;
+    const offer = getState().priorityOffers.find((o) => o.status === 'OFFERED');
+    setPaymentFlag('deferNextPayment', true);
+    return startCheckout(offer.id, { consents: REQUIRED_CONSENTS, purposes: [], requestNote: '' });
   },
 };
 

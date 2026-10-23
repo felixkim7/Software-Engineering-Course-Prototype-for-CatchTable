@@ -10,7 +10,8 @@ import { pageUrl, queryParam } from '../core/nav.js';
 import { waitingStatistics } from '../services/statistics.js';
 import { isSaved, toggleSaved, hasCoupon, claimCoupon, recordView } from '../services/customer.js';
 import { activeTicketFor, registrationStatus } from '../services/waiting.js';
-import { liveRequestFor, reconcileOffers } from '../services/allocation.js';
+import { liveRequestFor } from '../services/allocation.js';
+import { reconcile } from '../services/reconcile.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { pageHeader } from '../ui/header.js';
@@ -225,7 +226,7 @@ function renderDetail(state, restaurant) {
   refreshWaiting();
   subscribe(() => { refreshSaved(); refreshCoupon(); refreshWaiting(); });
   // Offer deadlines are absolute: re-check them so an expired offer hands off and its strip goes.
-  window.setInterval(reconcileOffers, 5000);
+  window.setInterval(reconcile, 5000);
 
   const name = app.querySelector('.detail-summary__name');
   const onScroll = () => header.classList.toggle('is-scrolled', name.getBoundingClientRect().bottom < header.getBoundingClientRect().bottom);
@@ -243,7 +244,7 @@ function renderNotFound() {
       h('a', { class: 'button button--primary', href: homeHref }, R.notFoundAction)));
 }
 
-reconcileOffers();  // expire overdue offers before the first render
+reconcile();  // expire overdue offers before the first render
 const state = getState();
 const restaurant = state.restaurants.find((r) => r.id === queryParam('restaurantId'));
 if (restaurant) renderDetail(state, restaurant);

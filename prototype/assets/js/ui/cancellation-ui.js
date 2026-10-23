@@ -6,7 +6,7 @@ import { getState } from '../core/store.js';
 import { now } from '../core/clock.js';
 import { addDays, formatClockTime, formatShortDate, seoulDateKey, weekdayOf } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
-import { customerRequests, isLiveRequest, joinQueue, liveOffersFor, matchingQueue, queueRank, findOffer } from '../services/allocation.js';
+import { customerRequests, isLiveRequest, joinQueue, liveOffersFor, matchingQueue, queueRank, findOffer, offerIsLive } from '../services/allocation.js';
 import { h } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
@@ -86,5 +86,5 @@ export function cancellationStrip(state, restaurant) {
 export function liveRequestSummary(state) {
   const live = customerRequests(state).filter(isLiveRequest);
   const nowMs = now();
-  return { count: live.length, offer: live.some((r) => r.status === 'OFFERED' && Date.parse(findOffer(state, r.offerId)?.expiresAt) > nowMs) };
+  return { count: live.length, offer: live.some((r) => r.status === 'OFFERED' && offerIsLive(findOffer(state, r.offerId), nowMs)) };
 }
