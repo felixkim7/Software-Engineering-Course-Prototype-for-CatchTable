@@ -1,0 +1,121 @@
+/* On-site waiting (Phase 2): detail queue card and ticket strip, registration (183123, 183234),
+   ticket page (183416, velog), postpone page (velog), 마이다이닝 cards. */
+
+/* ---- Detail page ---- */
+.refresh-link { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0; border: 0; background: none; color: var(--color-text-secondary); font-size: var(--font-body-sm); cursor: pointer; }
+.refresh-link::after { content: ""; position: absolute; inset: -6px -4px; }
+.refresh-link .icon { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--color-border); border-radius: 50%; }
+.refresh-link .icon svg { width: 14px; height: 14px; }
+.queue-card { display: flex; align-items: center; gap: var(--space-3); min-height: 64px; padding: 0 var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.queue-card__badge { padding: 2px 6px; border-radius: var(--radius-sm); background: var(--color-brand-soft); color: var(--color-primary-text); font-size: 12px; font-weight: 600; }
+.queue-card__type { flex: 1; font-size: var(--font-button); font-weight: 700; }
+.queue-card__value { font-size: var(--font-body); }
+.queue-block > .detail-caption { margin-top: var(--space-2); }
+
+/* To-Be: the live ticket stays visible above the bottom bar on every visit */
+.ticket-strip { display: flex; align-items: center; gap: var(--space-2); min-height: 52px; padding: var(--space-2) var(--space-3) var(--space-2) var(--gutter); border-top: 1px solid var(--color-divider); border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--color-bg); color: var(--color-text); text-decoration: none; box-shadow: 0 -2px 10px rgb(0 0 0 / 0.06); }
+.ticket-strip + .detail-ribbon { border-radius: 0; box-shadow: none; }
+.ticket-strip__label { flex: none; padding: 3px var(--space-2); border-radius: var(--radius-pill); background: var(--color-primary-strong); color: #FFFFFF; font-size: 12px; font-weight: 700; }
+.ticket-strip__text { flex: 1; min-width: 0; overflow: hidden; font-size: var(--font-body-sm); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.ticket-strip .icon svg { width: 18px; height: 18px; color: var(--color-text-secondary); }
+.ticket-strip--called { background: var(--color-brand-soft); }
+.ticket-strip--called .ticket-strip__text { color: var(--color-primary-text); }
+.detail-bar > .bar-cta[aria-disabled="true"] { color: var(--color-text-secondary); font-size: var(--font-button); font-weight: 600; }
+
+/* ---- Registration ---- */
+.waiting-step { padding: var(--space-5) var(--gutter) var(--space-6); }
+.waiting-step__question { margin-bottom: var(--space-5); font-size: var(--font-section); font-weight: 700; line-height: 1.4; }
+.waiting-step__hint { margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-caption); }
+.party-row { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 0 var(--space-2) 0 var(--space-3); }
+.party-row__label { font-size: var(--font-button); font-weight: 600; }
+.stepper { display: flex; align-items: center; gap: var(--space-3); }
+.stepper__button { position: relative; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--color-text); border-radius: 50%; background: var(--color-bg); color: var(--color-text); cursor: pointer; }
+.stepper__button::after { content: ""; position: absolute; inset: -4px; }
+.stepper__button:disabled { border-color: var(--color-border); color: var(--color-text-disabled); cursor: default; }
+.stepper__button .icon svg { width: 18px; height: 18px; }
+.stepper__value { min-width: 1.6em; font-size: var(--font-button); text-align: center; font-variant-numeric: tabular-nums; }
+.bottom-bar--stacked { flex-direction: column; }
+.party-total { display: flex; justify-content: space-between; padding: var(--space-2) var(--space-3) var(--space-3); border-bottom: 1px solid var(--color-divider); font-size: var(--font-button); }
+.party-total__value { font-size: var(--font-header); }
+.queue-facts { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--color-border); border-radius: var(--radius-lg); text-align: center; }
+.queue-facts > div { display: grid; gap: var(--space-2); padding: var(--space-5) var(--space-2); }
+.queue-facts > div + div { border-left: 1px solid var(--color-border); }
+.queue-facts dt { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.queue-facts dd { color: var(--color-primary-text); font-size: var(--font-section); font-weight: 700; }
+.waiting-step__band { margin: var(--space-5) calc(-1 * var(--gutter)); }
+.confirm-rows { display: grid; gap: var(--space-3); }
+.confirm-row { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--font-body); }
+.confirm-row dt, .confirm-row dd { font-weight: 700; }
+.confirm-row--minor dt, .confirm-row--minor dd { color: var(--color-text-secondary); font-weight: 400; }
+.confirm-row--minor { margin-top: calc(-1 * var(--space-1)); }
+.waiting-rules { margin: var(--space-8) calc(-1 * var(--gutter)) calc(-1 * var(--space-6)); padding: var(--space-6) var(--gutter); background: var(--color-surface-muted); }
+.waiting-rules__title { margin-bottom: var(--space-3); font-size: var(--font-body-sm); font-weight: 700; }
+.waiting-rules li { display: flex; gap: var(--space-2); color: var(--color-text-secondary); font-size: 13px; line-height: 1.6; }
+.waiting-rules li + li { margin-top: var(--space-2); }
+.waiting-rules .icon svg { width: 14px; height: 14px; margin-top: 4px; }
+
+/* ---- Ticket page ---- */
+.page-header--actions .page-header__title { flex: 1; }
+.ticket__store { display: grid; gap: 2px; padding: var(--space-4) var(--gutter) var(--space-5); color: var(--color-text); text-decoration: none; }
+.ticket__name { display: inline-flex; align-items: center; gap: 2px; font-size: var(--font-section); font-weight: 700; }
+.ticket__name .icon svg { width: 20px; height: 20px; }
+.ticket__meta { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.ticket__band { display: grid; gap: var(--space-4); padding: var(--space-5) var(--gutter) var(--space-6); border-top: var(--section-band) solid var(--color-divider); background: var(--color-surface-muted); }
+.ticket-card { display: grid; gap: var(--space-2); padding: var(--space-6) var(--space-5); border: 1px solid var(--color-divider); border-radius: var(--radius-xl); background: var(--color-bg); box-shadow: var(--shadow-card); }
+.ticket-card__head { display: flex; align-items: center; justify-content: space-between; }
+.ticket-card__head h2 { font-size: var(--font-header); font-weight: 700; }
+.ticket-card__position { display: flex; align-items: baseline; gap: 4px; margin-top: var(--space-2); color: var(--color-primary-text); font-size: var(--font-header); font-weight: 700; }
+.ticket-card__position strong { color: var(--color-brand); font-size: 44px; font-weight: 800; line-height: 1; }
+.ticket-card__facts { display: flex; flex-wrap: wrap; font-size: var(--font-body); font-weight: 600; }
+.ticket-card__facts span + span::before { content: ""; display: inline-block; width: 1px; height: 12px; margin: 0 var(--space-2); background: var(--color-border); }
+.ticket-card__time { color: var(--color-text-tertiary); font-size: 13px; }
+.ticket-card__called { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); color: var(--color-primary-text); font-size: var(--font-title); font-weight: 800; }
+.ticket-card__called .icon svg { width: 26px; height: 26px; }
+.ticket-card__body { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.ticket-card--called { border-color: var(--color-coupon-border); }
+.ticket-card__done { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-title); font-weight: 800; }
+.ticket-card__done .icon { color: var(--color-brand); }
+.ticket-card__done .icon svg { width: 26px; height: 26px; }
+.ticket-card__cancelled { color: #8C8C8C; font-size: 28px; font-weight: 800; }  /* large text, 3.36:1 */
+.ticket-card__number { color: var(--color-primary-text); font-weight: 700; }
+.ticket-notice { display: flex; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--color-chip); color: var(--color-text-secondary); font-size: 13px; }
+.ticket-notice .icon svg { width: 18px; height: 18px; color: var(--color-text); }
+.ticket-notice__title { color: var(--color-text); font-size: var(--font-body-sm); font-weight: 600; }
+.ticket__after { padding: var(--space-5) var(--gutter); }
+.registered-facts { display: grid; gap: var(--space-3); padding: var(--space-2) 0 var(--space-4); }
+.registered-facts > div { display: grid; grid-template-columns: 6em 1fr; gap: var(--space-3); font-size: var(--font-body); }
+.registered-facts dt { color: var(--color-text-secondary); }
+.registered-facts__info { color: #1F5FD1; font-weight: 600; }
+
+/* ---- Postpone page (velog: 웨이팅 순서 미루기) ---- */
+.postpone { padding: var(--space-4) var(--gutter) var(--space-6); }
+.postpone__intro { font-size: var(--font-body); line-height: 1.6; }
+.postpone__note { margin-top: var(--space-2); color: var(--color-primary-text); font-size: 13px; }
+.postpone-current { display: flex; align-items: center; justify-content: space-between; margin: var(--space-5) calc(-1 * var(--gutter)) 0; padding: var(--space-2) var(--space-3) var(--space-2) var(--gutter); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--color-surface-muted); font-size: var(--font-body); }
+.postpone-current strong { margin-left: var(--space-1); font-weight: 800; }
+.postpone-current__bar { margin: 0 var(--space-2); color: var(--color-border); }
+.postpone-current__minutes { color: var(--color-primary-text); font-weight: 600; }
+.refresh-button { border: 1px solid var(--color-border); }
+.refresh-button svg { width: 18px; height: 18px; }
+.postpone-choices { margin: 0; }
+.postpone-choice { display: flex; align-items: center; gap: var(--space-3); min-height: 60px; border-bottom: 1px solid var(--color-divider); font-size: var(--font-button); cursor: pointer; }
+.postpone-choice input { width: 22px; height: 22px; margin: 0; accent-color: var(--color-brand); }
+.postpone-choice:has(input:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: -2px; }
+.postpone-choice__extra { color: var(--color-primary-text); font-weight: 600; }
+.postpone-empty { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--color-surface-muted); color: var(--color-text-secondary); text-align: center; }
+.postpone-uses { padding-bottom: var(--space-2); font-size: var(--font-body); text-align: center; }
+.postpone-uses strong, .postpone-confirm strong { color: var(--color-primary-text); }
+.postpone-confirm { padding: var(--space-2) 0 var(--space-4); font-size: var(--font-body); }
+
+/* ---- 마이다이닝 cards ---- */
+.dining-list { display: grid; gap: var(--space-3); padding: var(--space-3) var(--gutter) var(--space-6); }
+.dining-card { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text); text-decoration: none; }
+.dining-card__photo { flex: none; width: 64px; height: 64px; border-radius: var(--radius-md); }
+.dining-card__text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.dining-card__chips { display: flex; align-items: center; gap: var(--space-2); }
+.dining-card__chip { padding: 1px 6px; border-radius: var(--radius-sm); background: var(--color-chip); color: var(--color-chip-text); font-size: 11px; }
+.dining-card__status { color: var(--color-primary-text); font-size: 12px; font-weight: 700; }
+.dining-card--seated .dining-card__status, .dining-card--cancelled .dining-card__status { color: var(--color-text-secondary); }
+.dining-card__name { font-size: var(--font-button); font-weight: 700; }
+.dining-card__meta, .dining-card__line, .dining-card__time { color: var(--color-text-secondary); font-size: 13px; }
+.dining-card > .icon svg { width: 18px; height: 18px; color: var(--color-text-secondary); }
