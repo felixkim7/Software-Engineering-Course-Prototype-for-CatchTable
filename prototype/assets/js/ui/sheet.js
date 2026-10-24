@@ -1,4 +1,4 @@
-import { h } from './dom.js';
+import { h, refocus } from './dom.js';
 import { icon } from './icons.js';
 import { STRINGS } from '../core/strings.js';
 
@@ -20,7 +20,7 @@ export function openSheet({ title, label, body, footer, className = '' }) {
     footer && h('div', { class: 'sheet__footer' }, footer));
   dialog.addEventListener('close', () => {
     dialog.remove();
-    if (opener?.isConnected) opener.focus();
+    refocus(opener);
   }, { once: true });
   document.body.append(dialog);
   dialog.showModal();

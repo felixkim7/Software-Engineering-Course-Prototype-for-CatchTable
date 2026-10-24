@@ -202,11 +202,17 @@ body.mobile { background: var(--color-surface-muted); }
   color: inherit;
   text-decoration: none;
 }
-.restaurant-card__photos { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 120px; margin-bottom: var(--space-3); overflow: hidden; border-radius: var(--radius-md); }
+.restaurant-card__photos { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-rows: 100%; gap: 2px; height: 120px; margin-bottom: var(--space-3); overflow: hidden; border-radius: var(--radius-md); }
 .restaurant-card__photo { width: 100%; height: 100%; }
 .restaurant-card__meta { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
-.restaurant-card__name { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-header); font-weight: 700; }
+.restaurant-card__name { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-2); font-size: var(--font-header); font-weight: 700; }
+.restaurant-card__name .rating, .restaurant-card__count { white-space: nowrap; }  /* long names wrap; the rating stays whole */
 .restaurant-card__desc { color: var(--color-text-secondary); }
+/* Thumbnail-only restaurants: the 가격대별 BEST row (170629), 76px photo beside the text */
+.restaurant-card--row { grid-template-columns: 76px minmax(0, 1fr); column-gap: var(--space-3); align-items: center; }
+.restaurant-card--row .restaurant-card__photos { grid-row: 1 / span 3; width: 76px; height: 76px; margin: 0; }
+.restaurant-card--row > :not(.restaurant-card__photos) { grid-column: 2; }
+.restaurant-card--row .restaurant-card__desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* App tab bar */
 .bottom-nav {
@@ -330,3 +336,49 @@ body.mobile { background: var(--color-surface-muted); }
 .bell-link__dot { position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--color-danger); }
 .count-dot { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 4px; padding: 0 5px; border-radius: var(--radius-pill); background: var(--color-primary-strong); color: #FFFFFF; font-size: 11px; font-weight: 700; vertical-align: 2px; }
 a.underline-tab { grid-auto-flow: column; justify-content: center; gap: 2px; text-decoration: none; }
+
+/* C14 MY (220751) */
+.my-header .page-header__title { flex: 1; font-size: 26px; font-weight: 800; }
+.my { display: grid; gap: var(--space-3); padding: var(--space-2) var(--gutter) var(--space-6); }
+.my > .section-band { margin: var(--space-3) calc(-1 * var(--gutter)) 0; }
+.my-profile { display: flex; align-items: center; gap: var(--space-3); }
+.my-profile__avatar { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--color-chip); color: var(--color-text-tertiary); }
+.my-profile__avatar svg { width: 28px; height: 28px; fill: currentColor; stroke: none; }
+.my-profile__name { flex: 1; font-size: var(--font-header); font-weight: 700; }
+.my-follow { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.my-follow strong { color: var(--color-text); }
+.my-card { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 64px; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-bg); color: var(--color-text); font-size: var(--font-body); text-align: left; text-decoration: none; cursor: pointer; }
+.my-card > .icon svg { width: 18px; height: 18px; color: var(--color-text-secondary); }
+.my-badges > span:first-child { flex: 1; font-weight: 600; }
+.my-badges img { height: 30px; width: auto; }
+.my-pay { border-color: #F28C6B; }
+.my-pay__text { flex: 1; font-size: 13px; font-weight: 600; }
+.my-pay__text strong { color: var(--color-primary-text); }
+.my-pay__brand { color: var(--color-primary-text); font-weight: 800; letter-spacing: -0.02em; }
+.my-pay__brand span { margin-left: 2px; font-weight: 600; }
+.my-pay__card { display: inline-flex; align-items: center; gap: 2px; color: var(--color-text-secondary); font-size: 13px; white-space: nowrap; }
+.my-pay__card .icon svg { width: 14px; height: 14px; }
+.my-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; padding: var(--space-2); }
+.my-tile { display: grid; justify-items: center; gap: 2px; width: 100%; min-height: 88px; padding: var(--space-2) 0; border: 0; background: none; color: var(--color-text); font-size: var(--font-body-sm); text-decoration: none; cursor: pointer; }
+.my-tile__icon svg { width: 26px; height: 26px; }
+.my-tile__value { color: var(--color-text-tertiary); }
+.my-special img { flex: none; width: 36px; height: auto; }
+.my-special > span { display: grid; gap: 2px; }
+.my-special__title { font-weight: 700; }
+.my-special__link { display: inline-flex; align-items: center; gap: 2px; color: var(--color-primary-text); font-size: var(--font-body-sm); font-weight: 600; }
+.my-special__link .icon svg { width: 14px; height: 14px; }
+.my-row > span:first-child { flex: 1; font-size: var(--font-body-sm); }
+.my-banner { padding: 0; border: 0; border-radius: var(--radius-lg); background: none; cursor: pointer; }
+.my-banner img { display: block; width: 100%; border-radius: var(--radius-lg); }
+.my-section-row { display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0; border: 0; background: none; color: var(--color-text); font-size: var(--font-header); font-weight: 700; cursor: pointer; }
+.my-section-row .icon svg { width: 18px; height: 18px; color: var(--color-text-secondary); }
+.my-count { color: var(--color-text-tertiary); font-weight: 600; }
+.my-reviews__head { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
+.my-reviews__head h2 { font-size: var(--font-header); font-weight: 700; }
+.my-reviews__avg { color: var(--color-text-secondary); font-size: var(--font-body-sm); }
+.coupon-list { display: grid; gap: var(--space-2); }
+.coupon-list .coupon { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-coupon-border); border-radius: var(--radius-lg); }
+.coupon-list .coupon__icon { color: var(--color-brand); }
+.coupon-list .coupon__icon svg { width: 22px; height: 22px; }
+.coupon-list .coupon__desc { color: var(--color-text-secondary); font-size: 13px; }
+

@@ -5,6 +5,7 @@
 
 import { STORAGE_KEY, SCHEMA_VERSION, POLICY } from './config.js';
 import { createSeed, DOMAIN_COLLECTIONS, FIXTURE_COLLECTIONS } from './seed-data.js';
+import { refocus } from '../ui/dom.js';
 
 const changes = new EventTarget();
 let status = 'ok';   // 'ok' | 'outdated' | 'corrupt' | 'unavailable'
@@ -134,12 +135,22 @@ export function afterMockDelay(run, delayMs = POLICY.mockServiceDelayMs) {
   });
 }
 
-/** Calls `listener` after same-tab commits, other-tab writes, focus and back/forward restore. */
+/**
+ * Calls `listener` after same-tab commits, other-tab writes, focus and back/forward restore.
+ * Listeners re-render, which replaces the focused control; unless the page restored focus
+ * itself, keyboard focus moves to the control's twin.
+ */
 export function subscribe(listener) {
-  changes.addEventListener('change', listener);
+  const run = () => {
+    const focused = document.activeElement;
+    listener();
+    if (!focused?.isConnected && document.activeElement === document.body) refocus(focused);
+  };
+  changes.addEventListener('change', run);
   window.addEventListener('storage', (event) => {
-    if (event.key === STORAGE_KEY || event.key === null) listener();
+    if (event.key === STORAGE_KEY || event.key === null) run();
   });
-  window.addEventListener('focus', listener);
-  window.addEventListener('pageshow', listener);
+  // Deferred: element.focus() on a blurred window fires this synchronously, before that element is active
+  window.addEventListener('focus', () => setTimeout(run));
+  window.addEventListener('pageshow', run);
 }

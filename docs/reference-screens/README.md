@@ -40,7 +40,7 @@ not reproduced either.
 
 | Time | Screen and observed state | Used for |
 |---|---|---|
-| 170629 | Home below the categories: "어디로 가시나요?" area tiles with 인기/핫플 badges and a 내 주변 pill, recently-viewed rows, price-band BEST, Michelin section (long capture) | Home areas, 1 |
+| 170629 | Home below the categories: "어디로 가시나요?" area tiles with 인기/핫플 badges and a 내 주변 pill, recently-viewed rows, price-band BEST, Michelin section (long capture) | Home areas, 1; r4-r14 names, ratings, counts, Michelin labels and photo crops (the 최근 본 매장 chips, e.g. 리틀에마스, are personal and unused) |
 | 170655 | Home top, brand tabs scrolled to 쿠폰 · 예약맛집 · 웨이팅맛집 · 캐치단독 · 피드 | Brand tabs |
 | 171054, 171056 | 월화식당 detail top: photo carousel, Blue Ribbon 2027 chip, name, rating, station/price/hours rows, tags; 171056 has a "캡쳐해서 보내던 매장을…" app banner | r1 summary |
 | 171105 | 월화식당 홈 tab (long): coupon, 예약/웨이팅 segmented, date chips, AI summary, Blue Ribbon banner, menu preview, reviews, photos, facilities, location, details | r1 홈 previews |
@@ -70,7 +70,7 @@ not reproduced either.
 | 173449 | 저장 tab scrolled (same layout; *personal*) | Saved page |
 | 173505 | 마이다이닝 나의 예약 / 방문예정 empty state "예약한 매장이 없어요. 가까운 맛집을 지금 찾아보세요!" + orange button; recommended searches card (*personal* title) | My-dining |
 | 173513, 173524 | 마이다이닝 방문완료 and 취소/노쇼 filters. *personal*: visit history including a past 현장웨이팅 ticket | My-dining; Phase 2 visited state |
-| 220751 | MY tab: profile (수정), 팔로워/팔로잉, 캐치미식가 배지, CATCH pay banner, 포인트 / 쿠폰함 / 저장 / 최근 본 매장, 생일·기념일 등록, 전화 예약 관리, benefit banner, 도움돼요 누른 리뷰, 내가 쓴 리뷰. *personal*: account name, own review and photo | Phase 6 MY tab |
+| 220751 | MY tab: profile (수정), 팔로워/팔로잉, 캐치미식가 배지, CATCH pay banner, 포인트 / 쿠폰함 / 저장 / 최근 본 매장, 생일·기념일 등록, 전화 예약 관리, benefit banner, 도움돼요 누른 리뷰, 내가 쓴 리뷰. *personal*: account name, own review and photo | Phase 6 MY tab (badge strip, cake and benefit banner cropped; personal parts not used) |
 | 173602 | Another restaurant's waiting area: 웨이팅 queue by party size (1인 / 2인 / 3인 이상), "요일별 평균 웨이팅 시간 Beta" line chart with tooltip "평균 10팀 \| 16분", weekday circles with "대기 많음" | Statistics chart; Phase 2 queue list |
 
 ## Online references (not stored in the repo)

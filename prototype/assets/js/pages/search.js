@@ -63,6 +63,7 @@ function render() {
 document.title = S.pageTitle;
 document.getElementById('app').replaceChildren(
   h('header', { class: 'search-header' },
+    h('h1', { class: 'visually-hidden' }, S.label),
     h('a', { class: 'icon-button', href: pageUrl('customer/discovery.html'), 'aria-label': S.back }, icon('back')),
     h('div', { class: 'search-box' },
       h('label', { class: 'visually-hidden', for: 'search-input' }, S.label),

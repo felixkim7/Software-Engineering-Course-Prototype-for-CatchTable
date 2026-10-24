@@ -1,8 +1,8 @@
 # Development Progress
 
-Current phase: Phase 5 COMPLETE (2026-10-23).
-Next authorized candidate: Phase 6, which starts only on an explicit user request.
-It now also includes the user-requested MY tab and more restaurants (docs/phases/phase-6-integration.md).
+Current phase: Phase 6 COMPLETE (2026-10-23). All planned phases (0-6) are complete.
+No further phase is defined; any new work starts only on an explicit user request.
+Post-Phase 6 addition (2026-10-23): seven more restaurants, 14 in total (session below).
 
 | Phase | Status | Verification evidence |
 |---|---|---|
@@ -12,9 +12,140 @@ It now also includes the user-requested MY tab and more restaurants (docs/phases
 | 3 Cancellation queue | Complete | 16/16 Phase 3 acceptance (Q01-Q08 through the UI), 35/35 self-check page, 22/22 Phase 2, 53/53 fidelity and 38/38 Phase 0 regression, accessible-name and contrast checks (2026-10-23) |
 | 4 Priority booking | Complete | 16/16 Phase 4 acceptance (UC-PB, P01-P12 through the UI), 44/44 self-check page, 16/16 Phase 3, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0, accessible-name and contrast checks (2026-10-23) |
 | 5 Late arrival | Complete | 11/11 Phase 5 acceptance (L01-L08 through the UI, two roles), 50/50 self-check page, 16/16 Phase 4, 16/16 Phase 3, 22/22 Phase 2, 53/53 fidelity, 38/38 Phase 0 (2026-10-23) |
-| 6 Integration | Not started | None |
+| 6 Integration | Complete | Integration sweep 6/6 (246 buttons on 22 routes + 18 hub buttons respond, 22 links, offline, 23 routes x 2 viewports), a11y sweep 2/2 (23 routes; 18 keyboard dialogs), demo rehearsal 13/13 (A/B/C twice), self-check 50/50, Phase 5 11/11, Phase 4 16/16, Phase 3 16/16, Phase 2 22/22, fidelity 53/53, Phase 0 38/38 (2026-10-23) |
 
-## Current session (2026-10-23, Phase 5: late-arrival coordination)
+## Current session (2026-10-23, after Phase 6: more restaurants)
+
+- Request: "식당 더 추가해봐, 총 15개 정도로" (add more restaurants, about 15 in total).
+- Result: 14 restaurants. Capture 170629 shows eight unused restaurants; 리틀에마스 appears only as the user's
+  own recently viewed chip (personal history), so it was skipped. No other capture lists restaurants.
+  A 15th would need a restaurant with no captured photo (placeholder block) - not added without asking.
+
+**Files**
+- New: `core/fixtures/more-restaurants.js` (r8 이자카야나무 사당역2호점, r9 돌판장 양재, r10 팔향, r11 마담풍천 보라매,
+  r12 투머트, r13 월화고기 보라매점, r14 화포식당 한남점); 7 photo crops in `images/restaurants/`.
+- Changed:
+  - restaurant-fixtures (register r8-r14); web-sourced (exports its helpers); seed-data (statistics for r11 collecting,
+    r13, r14; queues for r13, r14);
+  - statistics: hour slots follow `waiting.hours` first (화포식당 is open 24 hours, mock waiting 11-23);
+  - detail panels: menu preview, location, facilities and details sections hide when empty; the menu tab says
+    the menu was not found (r9, r11);
+  - restaurant card: `thumbnailOnly` row layout (가격대별 BEST style, 76px); detail photo 152px for those;
+    long names wrap without squeezing the rating;
+  - strings (menuMissing; reviewsMissing no longer claims the count is missing); CSS mobile, detail.
+- Docs: assets (crops, per-restaurant sources), data-model, decisions, screen-map, visual-spec,
+  reference-screens README, CLAUDE.md fixture rule, prototype/README.
+
+**Data**
+- From the capture: name, one-liner, rating, review count, cuisine, area, photo.
+- From public pages (docs/assets.md): address, phone, hours, closing days, facilities, menu and prices for
+  r8, r10, r12, r13; address, phone, 24 hours and a partial menu for r14.
+- No public page was found for the 돌판장 양재 and 마담풍천 보라매 branches: address, phone, hours and menu stay null
+  and those sections are hidden. Other branches' menus were not reused.
+- Mock: r8, r9, r10, r12 booking-only; r11 booking + waiting (statistics collecting); r13 booking + waiting;
+  r14 waiting-only. Deposits 0 or 10,000 KRW per person.
+
+**Evidence** (headless Edge, server `python -m http.server 5577`)
+- Run: self-check 50/50 (all waiting restaurants have every weekday x hour cell); Phase 0 38/38; Phase 2 22/22;
+  fidelity 53/53 after its capability-filter check was changed to derive the expected lists from the fixtures.
+- Smoke of r8-r14: home lists 14 restaurants; every tab of each new detail page opens with no horizontal
+  overflow at 390px; search 장어 finds 돌판장 and 마담풍천; r11 statistics collecting, r13/r14 charts; hub
+  without overflow; no console or HTTP errors. Screenshots checked: home list, r8, r9, r10 menu, r14 waiting.
+- Finished on 2026-10-24 at the user's request: Phase 3 16/16 (four runs in a row), Phase 4 16/16, Phase 5 11/11;
+  integration sweep 6/6 (374 buttons on 29 routes and 21 hub buttons respond, 29 link targets, offline,
+  no overflow on 30 routes at 390/360 and 1440/1024, no console errors); accessibility sweep 2/2 (30 routes,
+  24 keyboard dialogs); demo rehearsal 13/13 (A/B/C twice).
+- Phase 3 flake explained and fixed in the test: it confirmed the 신청 취소 dialog and read the result after a fixed
+  150 ms while the manager tab was in front. Chromium then delivers this background tab's dialog close event
+  about a second late (measured: submit -> close 990 ms; 50 ms once the tab is brought to front), so the test
+  navigated away before the withdrawal ran. The test now waits for the result toast. Not an app defect: the tab a
+  person clicks is always in front.
+
+**Open items**
+- The BEST thumbnails are 151px: sharp in the row card, slightly soft as the 152px detail photo on 2x screens.
+- 화포식당 한남점: the official page was indexed but returned 404 when fetched; two phone numbers exist online.
+- No manager accounts for r3-r14 (unchanged).
+
+## Phase 6 session record (2026-10-23: integration, polish, MY tab, more restaurants)
+
+- Request: "now do the phase 6".
+- References: capture 220751 (MY) and 170629 (home list with the four added restaurants); public pages for
+  r4-r7 (docs/assets.md). app.catchtable.co.kr was not accessed.
+
+**Files**
+- New:
+  - `core/fixtures/web-sourced.js` (r4 밍글스, r5 Restaurant EVETT, r6 우월소곱창 신도림본점, r7 작은따옴표 도림천점);
+  - `pages/my.js` + `customer/my.html` (C14 MY tab);
+  - images: `restaurants/{mingles,evett,woowol,jageun}-1.jpg` (170629 crops), `my/{badges.png,cake.png,benefit-banner.jpg}` (220751 crops).
+- Changed:
+  - fixtures index and seed (r6 queue of 3, r6/r7 statistics patterns); statistics (falls back to waiting hours);
+  - booking.js (closed weekdays: `isClosedDay`, `closed` flag, `dayStatus`); booking-panel and saved chips (휴무, 정기 휴무일이에요);
+  - detail summary/panels and restaurant cards (Michelin badge, weekday hours, every unknown field optional);
+  - bottom nav (MY → my.html); icons (point, ticket, alert, settings gear);
+  - dom.js `refocus`, sheet.js, modal.js, store.js `subscribe` (focus survives re-renders, see Behaviour);
+  - search.js (visually hidden h1); strings; CSS: detail (Michelin chip), mobile (MY; single-photo card grid fix);
+  - tests/self-check.js (closed-weekday assertions in the booking check).
+- Docs: assets (crops, r4-r7 sources), screen-map (C14, stale rows, CTA rules), data-model (nullable fields,
+  hours shapes, r4-r7), decisions (added restaurants, closed weekdays, MY, focus), visual-spec (MY, r4-r7),
+  reference-screens README, demo-script (walk-in step, clean-start for C, rehearsal record),
+  CLAUDE.md fixture rule, prototype/README.md (final routes, rehearsal, sources, limits).
+
+**Behaviour**
+- MY shows the presenter-selected customer, the claimed-coupon count (sheet), and links to 저장 / search / 나의 알림.
+  Points, badges, CATCH pay, edit, settings, birthday, phone booking and the banner say they are not in this demo.
+  The capture's account name, review and photo are not reproduced.
+- r4-r7 appear on home, search and detail. Unknown fields stay null and are hidden (no review counts, distributions,
+  AI summary or invented reviews). Mock settings: r4/r5 booking-only, 50,000 KRW per person; r6 booking + waiting;
+  r7 waiting-only. r5's Sunday/Monday closing days read 휴무 with no times.
+- Keyboard focus: a store-driven re-render (other-tab write, window focus, commit) no longer drops focus to the page;
+  dialogs return focus to the re-rendered opener.
+
+**Fixes found by the Phase 6 checks**
+- Dialog focus was lost when a re-render replaced the opener (MY 쿠폰함, waiting cancel, 신청 취소, offer decline,
+  ETA update). Window-focus renders now run after focus settles; the twin match includes aria-label so row
+  buttons (M02 호출) keep their own focus restore.
+- search.html had no h1.
+- r5 closed days showed 예약 마감 (sold out), implying a cancellation seat could appear.
+- MY: CATCH pay and 전화 예약 lines wrapped (a selector also matched the chevron); the settings icon looked like a sun.
+- Demo script A could not postpone a fresh last-in-line ticket; the script now adds a hub walk-in first
+  (the app already explained why postponing was impossible).
+
+**Evidence** (headless Edge via playwright-core, server `python -m http.server 5577`)
+- Integration sweep 6/6: every visible enabled button on 22 routes (246) and the hub (18) navigates, opens a
+  dialog, changes the page or shows a message; nothing covered at the tap point; 22 link targets answer 200;
+  with every non-local request blocked nothing was requested; no horizontal overflow on 23 routes at
+  390/360 (customer) and 1440/1024 (manager, hub); no console errors.
+- Accessibility sweep 2/2: named controls, one h1, alt on every image, labelled fields and unique ids on 23
+  routes; 18 dialogs opened by keyboard are named and modal, take focus, keep Tab inside, close on Escape and
+  return focus.
+- Demo rehearsal 13/13: A, B and C through hub and UI, twice in one browser context from presets with no
+  manual cleanup (A 20 presenter actions, B 10, C 13), no console errors.
+- Self-check 50/50; Phase 5 11/11, Phase 4 16/16, Phase 3 16/16, Phase 2 22/22, fidelity 53/53, Phase 0 38/38.
+  Phase 3 stopped once without a result while several suites ran in parallel (the known `.offer__ended`
+  timing flake) and passed 16/16 when rerun alone.
+- MY compared side by side with 220751 at 390px; r5 closed-day chips and calendar checked by screenshot.
+
+**Unverified**
+- Spoken timing of the demo (only presenter actions were counted; A may exceed 50 seconds).
+- Real devices, screen readers and forced-colors mode.
+- Concurrent writers (one active writer tab is supported).
+
+**Open items / limitations**
+- r3-r7 have no manager account; their waiting queues and bookings are visible to customers only.
+- No photo licence for reuse was found for r4-r7, so each has one capture crop; detail layouts for them are provisional.
+- Online images found while researching stay outside the repo. Capture-derived images and restaurant
+  photos belong to their owners; whether to push them to the public repository is the user's decision.
+
+## Final handoff
+
+- Start: serve the repository root (`python -m http.server 5500`), open http://localhost:5500/prototype/,
+  press 데모 초기화, then follow docs/demo-script.md (A waiting, B cancellation seat, C late arrival).
+- Pages to review first: customer/my.html; customer/restaurant.html?restaurantId=r5 (휴무 days) and r6
+  (waiting with statistics); the three rehearsal paths in prototype/README.md.
+- Tests: open /prototype/tests/ for the 50 self-checks; the browser suites used here live in the session
+  scratchpad, not the repository.
+
+## Phase 5 session record (2026-10-23, late-arrival coordination)
 
 - Request: "add [the MY tab] to phase 6, i put the new screenshot. also for phase 6 add more restaurants than just
   having 3. search online for name, menu, photos, etc. now work on phase 5".

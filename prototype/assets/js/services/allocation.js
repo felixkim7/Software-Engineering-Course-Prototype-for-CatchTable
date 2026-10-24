@@ -119,6 +119,7 @@ function validCondition(state, condition, nowMs) {
     && Number.isInteger(partySize) && partySize >= 1 && partySize <= restaurant.booking.maxPartySize;
   if (!valid) return reject('INVALID_CONDITION');
   const slot = bookingTimes(state, restaurant, serviceDate, nowMs).find((t) => t.time === serviceTime);
+  if (!slot) return reject('INVALID_CONDITION');  // regular closing day
   if (slot.available) return reject('TIME_AVAILABLE');
   return null;
 }

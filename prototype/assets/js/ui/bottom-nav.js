@@ -11,7 +11,7 @@ const ITEMS = [
   { key: 'saved', icon: 'bookmark', label: N.saved, path: 'customer/saved.html' },
   { key: 'nearby', icon: 'pin', label: N.nearby },
   { key: 'myDining', icon: 'calendar', label: N.myDining, path: 'customer/my-dining.html' },
-  { key: 'my', icon: 'user', label: N.my },
+  { key: 'my', icon: 'user', label: N.my, path: 'customer/my.html' },
 ];
 
 export function bottomNav(currentKey) {

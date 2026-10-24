@@ -6,7 +6,7 @@ import { now } from '../core/clock.js';
 import { addDays, formatShortDate, seoulDateKey, weekdayOf } from '../core/format.js';
 import { pageUrl } from '../core/nav.js';
 import { savedRestaurantList, recentRestaurants } from '../services/customer.js';
-import { bookingDates } from '../services/booking.js';
+import { bookingDates, dayStatus } from '../services/booking.js';
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { notInDemo } from '../ui/toast.js';
@@ -21,11 +21,12 @@ const content = h('div', {});
 function dateChips(state, restaurant) {
   const nowMs = now();
   const today = seoulDateKey(nowMs);
-  return h('div', { class: 'date-chips' }, bookingDates(state, restaurant, nowMs, 5).map(({ dateKey, available }) => {
+  return h('div', { class: 'date-chips' }, bookingDates(state, restaurant, nowMs, 5).map((day) => {
+    const { dateKey, available } = day;
     const prefix = dateKey === today ? B.today : dateKey === addDays(today, 1) ? B.tomorrow : formatShortDate(dateKey);
     return h('a', { class: 'date-chip', href: detailHref(restaurant), 'data-available': String(available) },
       h('span', { class: 'date-chip__day' }, `${prefix} (${STRINGS.weekdays[weekdayOf(dateKey)]})`),
-      h('span', { class: 'date-chip__status' }, available ? B.available : B.soldOut));
+      h('span', { class: 'date-chip__status' }, dayStatus(B, day)));
   }));
 }
 
@@ -35,7 +36,7 @@ function savedEntry(state, restaurant) {
       h('a', { class: 'saved-entry__name', href: detailHref(restaurant) },
         restaurant.name, h('span', { class: 'saved-entry__meta' }, `${restaurant.district} · ${restaurant.cuisine}`)),
       h('button', { class: 'icon-button', type: 'button', 'aria-label': S.more, onclick: notInDemo }, icon('more'))),
-    h('p', { class: 'saved-entry__rating' }, ratingStar(restaurant.rating), h('span', {}, `(${restaurant.reviewCount.toLocaleString('ko-KR')})`)),
+    h('p', { class: 'saved-entry__rating' }, ratingStar(restaurant.rating), restaurant.reviewCount !== null && h('span', {}, `(${restaurant.reviewCount.toLocaleString('ko-KR')})`)),
     h('div', { class: 'saved-entry__photos', 'aria-hidden': 'true' }, restaurant.photos.slice(0, 3).map((_, index) => restaurantPhoto(restaurant, 'saved-entry__photo', index))),
     restaurant.bookingEnabled && dateChips(state, restaurant));
 }

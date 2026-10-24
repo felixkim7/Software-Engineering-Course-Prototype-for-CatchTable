@@ -34,7 +34,10 @@ systems are simulated services, never live integrations.
   (availability, deposits, waiting, statistics, payments, notifications) are fictional.
   Restaurant fixtures r1/r2 show real public CatchTable listing details and photos
   transcribed or cropped from the user's captures (provenance in docs/assets.md); r3 is the
-  booking-only 스시렌 (2026-10-23 captures). Never present mock operational
+  booking-only 스시렌 (2026-10-23 captures). r4-r14 take name, rating, review count, Michelin label
+  and photo from capture 170629 and address, phone, hours and menu prices from public web pages
+  listed in docs/assets.md; anything no source states stays null and is hidden. Photos come only
+  from captures or sources that allow reuse. Never present mock operational
   data as a real restaurant's policy, and never invent reviews or menus for a real restaurant.
 - Serve over HTTP with VS Code Live Server or `python -m http.server 5500` from the
   project root. Open `/prototype/`. Do not rely on file://.

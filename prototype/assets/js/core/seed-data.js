@@ -33,11 +33,16 @@ function managers() {
 // MOCK waiting statistics: per hour [base average minutes, base record count, base average
 // teams], scaled per weekday, matching the app's "요일별 평균 웨이팅 시간" (평균 N팀 | M분).
 // r1 (dinner only) peaks at 19-20h; its weekday opening and closing hours get few
-// registrations and stay below the record minimum. r2 keeps every cell collecting.
+// registrations and stay below the record minimum. r2 and r11 keep every cell collecting.
 const WEEKDAY_FACTOR = [1.3, 0.8, 0.8, 0.9, 1.0, 1.3, 1.5];  // Sunday..Saturday
 const STAT_PATTERNS = {
   r1: { 16: [10, 4, 1], 17: [25, 12, 4], 18: [45, 22, 8], 19: [60, 24, 11], 20: [50, 18, 9], 21: [25, 9, 4], 22: [10, 3, 1] },
   r2: { 11: [10, 1, 1], 12: [30, 2, 4], 13: [20, 2, 3], 14: [10, 1, 1], 15: [5, 0, 1], 16: [5, 1, 1], 17: [15, 1, 2], 18: [30, 2, 4], 19: [30, 2, 4], 20: [15, 1, 2] },
+  r6: { 16: [5, 3, 1], 17: [15, 8, 2], 18: [35, 18, 5], 19: [50, 22, 7], 20: [40, 16, 6], 21: [20, 9, 3], 22: [10, 4, 1] },
+  r7: { 12: [10, 6, 1], 13: [15, 9, 2], 14: [20, 11, 3], 15: [20, 10, 3], 16: [15, 8, 2], 17: [15, 7, 2], 18: [25, 12, 4], 19: [40, 16, 6], 20: [40, 15, 6], 21: [25, 9, 3], 22: [10, 4, 1] },
+  r11: { 11: [10, 1, 1], 12: [20, 2, 3], 13: [15, 1, 2], 14: [10, 0, 1], 15: [5, 0, 1], 16: [5, 0, 1], 17: [15, 1, 2], 18: [25, 2, 3], 19: [30, 2, 4], 20: [20, 1, 2], 21: [10, 1, 1] },
+  r13: { 16: [5, 4, 1], 17: [20, 10, 3], 18: [40, 20, 7], 19: [55, 24, 9], 20: [45, 18, 7], 21: [20, 8, 3] },
+  r14: { 11: [10, 6, 1], 12: [30, 18, 5], 13: [20, 12, 3], 14: [10, 6, 1], 15: [5, 4, 1], 16: [10, 5, 1], 17: [15, 8, 2], 18: [30, 16, 5], 19: [35, 18, 6], 20: [25, 12, 4], 21: [15, 7, 2], 22: [10, 5, 1] },
 };
 
 function waitingStatistics(baseDate) {
@@ -74,6 +79,9 @@ const QUEUE_FIXTURES = {
     [7, 'onsite', 2, 0, 'WAITING', 28], [8, 'manual', 4, 0, 'WAITING', 20], [9, 'onsite', 2, 0, 'WAITING', 12], [10, 'app', 3, 0, 'WAITING', 5],
   ],
   r2: [[1, 'onsite', 2, 0, 'WAITING', 10]],
+  r6: [[1, 'onsite', 2, 0, 'WAITING', 15], [2, 'onsite', 3, 0, 'WAITING', 8], [3, 'onsite', 2, 0, 'WAITING', 3]],
+  r13: [[1, 'onsite', 2, 0, 'SEATED', 40, 10], [2, 'onsite', 4, 0, 'WAITING', 20], [3, 'app', 2, 0, 'WAITING', 12], [4, 'onsite', 3, 0, 'WAITING', 6], [5, 'onsite', 2, 0, 'WAITING', 2]],
+  r14: [[1, 'onsite', 2, 0, 'WAITING', 9], [2, 'onsite', 2, 0, 'WAITING', 4]],
 };
 const MINUTE_MS = 60 * 1000;
 

@@ -26,6 +26,7 @@
 .detail-photo { display: block; width: auto; max-width: calc(100vw - 2 * var(--gutter) - 24px); height: 228px; border-radius: var(--radius-lg); }
 .detail-photos--single li { flex: 1; }
 .detail-photos--single .detail-photo { width: 100%; max-width: none; }
+.detail-photos--thumb .detail-photo { width: 152px; height: 152px; }
 div.detail-photo { width: min(300px, calc(100vw - 2 * var(--gutter))); }
 
 .detail-summary { padding: var(--space-4) var(--gutter) var(--space-5); }
@@ -35,6 +36,8 @@ div.detail-photo { width: min(300px, calc(100vw - 2 * var(--gutter))); }
 .badge-chip--ribbon { background: #F8F6EA; color: #1C4A9C; }
 .badge-chip--outline { padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-bg); color: var(--color-text); cursor: pointer; }
 .badge-chip--muted { background: var(--color-chip); color: var(--color-chip-text); cursor: pointer; }
+.badge-chip--michelin { padding: 0; color: #A0303A; font-weight: 700; }  /* as 170629; 7.05:1 */
+.badge-chip--michelin > span { letter-spacing: -1px; }
 .badge-chip .icon svg { width: 14px; height: 14px; }
 .detail-summary__title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .detail-summary__name { font-size: 22px; font-weight: 700; line-height: var(--line-title); }

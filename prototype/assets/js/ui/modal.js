@@ -1,4 +1,4 @@
-import { h } from './dom.js';
+import { h, refocus } from './dom.js';
 import { STRINGS } from '../core/strings.js';
 
 let dialogCount = 0;
@@ -23,7 +23,7 @@ export function confirmDialog({ title, message, confirmLabel, cancelLabel = STRI
   return new Promise((resolve) => {
     dialog.addEventListener('close', () => {
       dialog.remove();
-      opener?.focus();
+      refocus(opener);
       resolve(dialog.returnValue === 'confirm');
     }, { once: true });
     dialog.showModal();

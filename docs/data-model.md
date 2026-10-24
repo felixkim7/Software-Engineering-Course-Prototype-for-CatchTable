@@ -6,7 +6,7 @@
 |---|---|
 | Customer | id, displayName |
 | Manager | id, restaurantId, displayName |
-| Restaurant | id, name, district, cuisine, description, rating, reviewCount, saveCount, photoCount, badges[{kind,label}], photos[], stations[{lines[], name, distanceM}], priceBand, hours {open, close}, weeklyHours?, tags[], ribbon?, coupon, aiSummary, awardBanner?, waitingEnabled, bookingEnabled, booking {maxPartySize, windowDays, times, soldOut [[dayOffset, time or null]], openSchedule?, deposit}, menu {categories[{name, range?, items[{name, price, description, image, badges}]}], notes[], boards[], updatedAt}, reviews {distribution[5..1], purposes[]}, photoFilters[], info {intro, award?, address, map, directions?, facilities[], guides[], phone, closedDays?, notices?, capacity?}, news[], broadcasts[], waiting {accepting, minutesPerTeam, remoteMinTeams, maxPartySize} or null (fixtures in core/fixtures/; `accepting` is changed by the manager) |
+| Restaurant | id, name, district, cuisine, description, rating, reviewCount?, saveCount?, photoCount?, badges[{kind, label, stars?}] (kind `michelin` carries stars), photos[], thumbnailOnly? (true when the only photo is a small list thumbnail: row card, small detail photo), stations[{lines[], name, distanceM}], priceBand?, hours? {open, close, closedWeekdays?[0-6, Sunday 0], byWeekday?{weekday: [open, close]}}, weeklyHours?, tags[], ribbon?, coupon?, aiSummary?, awardBanner?, waitingEnabled, bookingEnabled, booking {maxPartySize, windowDays, times, soldOut [[dayOffset, time or null]], openSchedule?} (null when bookingEnabled is false), policies {depositPerPersonKRW} (mock), menu {categories[{name, range?, items[{name, price, description?, image?, badges}]}], notes[], boards[], updatedAt?}, reviews? {distribution[5..1], purposes[]}, photoFilters[], info {intro, award?, address, map?, directions?, facilities[], guides[], phone?, closedDays?, notices?, capacity?}, news[], broadcasts[], waiting {accepting, minutesPerTeam, remoteMinTeams, maxPartySize, hours?} or null (fixtures in core/fixtures/; `accepting` is changed by the manager). `?` = may be null: r4-r14 leave every field no public source states as null (including info.address for r9/r11) and the UI omits that section (no invented counts, reviews or menus). Booking times are empty on `closedWeekdays`; statistics slots use `waiting.hours`, else `hours` |
 | SavedRestaurant | customerId, restaurantId, savedAt |
 | CouponClaim | customerId, couponId, claimedAt |
 | RecentView | customerId, restaurantId, viewedAt (one per customer and restaurant, newest first) |
@@ -79,11 +79,17 @@ Reject a response to an obsolete version with a useful refresh message.
 
 ## Required fixture set
 
-People and operational records are fictional; restaurants r1-r3 are real public listings (see CLAUDE.md). IDs below are stable technical fixture keys.
+People and operational records are fictional; restaurants r1-r14 are real restaurants (r1-r3 from the user's captures, r4-r14 from capture 170629 plus public web pages; see CLAUDE.md and docs/assets.md). IDs below are stable technical fixture keys.
 
-- r1 월화식당 마포본점 (real listing): booking + waiting, sufficient statistics, deposit 20000 KRW (mock).
+- r1 월화식당 마포본점 (real listing): booking + waiting, sufficient statistics, deposit 10000 KRW per person (mock; 20000 for the seeded party of 2).
 - r2 vivo pizza 공덕점 (real listing): booking + waiting, insufficient statistics; same statistics section with collecting state.
 - r3 스시렌 (real listing): booking-only, zero deposit; no irrelevant waiting section.
+- r4 밍글스, r5 Restaurant EVETT: booking-only fine dining (mock deposits); r5 is closed on Sunday and Monday, so those days offer no times.
+- r6 우월소곱창 신도림본점: booking + waiting with a seeded queue of 3 and statistics. r7 작은따옴표 도림천점: waiting-only (`bookingEnabled: false`, `booking: null`).
+- r8 이자카야나무 사당역2호점, r9 돌판장 양재, r10 팔향 (closed Sunday), r12 투머트 (closed Monday): booking-only.
+- r11 마담풍천 보라매: booking + waiting with every statistics cell collecting. r13 월화고기 보라매점: booking + waiting,
+  queue of 4 and statistics. r14 화포식당 한남점: waiting-only, queue of 2 and statistics over mock waiting hours 11-23
+  (the restaurant itself is open 24 hours). r9 and r11 have no public address, phone, hours or menu.
 - c1: presenter customer; active role switches between reservation and waiting experiences.
 - c2: next eligible customer; selectable only in presenter tools.
 - c3: an older applicant with a mismatched party size, proving matching before FIFO

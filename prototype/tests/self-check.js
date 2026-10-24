@@ -1,12 +1,13 @@
 // Dependency-free checks for risky prototype logic. Open tests/index.html over HTTP.
 // Uses the real storage key, and restores whatever demo data was there before.
 import { STORAGE_KEY, SCHEMA_VERSION, POLICY } from '../assets/js/core/config.js';
+import { STRINGS } from '../assets/js/core/strings.js';
 import { createSeed, DOMAIN_COLLECTIONS } from '../assets/js/core/seed-data.js';
 import { getState, getStorageStatus, resetDemo, setPreference, afterMockDelay } from '../assets/js/core/store.js';
 import { now, advance } from '../assets/js/core/clock.js';
 import { seoulDateKey, addDays, weekdayOf, seoulHour, formatKRW, escapeHtml } from '../assets/js/core/format.js';
 import { hourSlots, waitingStatistics } from '../assets/js/services/statistics.js';
-import { bookingDates, bookingTimes } from '../assets/js/services/booking.js';
+import { bookingDates, bookingTimes, dayStatus } from '../assets/js/services/booking.js';
 import { isSaved, toggleSaved, savedRestaurantList, hasCoupon, claimCoupon, recordView, recentRestaurants } from '../assets/js/services/customer.js';
 import {
   activeQueue, activeTicketFor, addWalkIn, callTicket, cancelWaiting, findTicket, isActive, managerCancelTicket,
@@ -164,7 +165,7 @@ try {
 
   await check('every waiting-enabled restaurant has a record for every weekday x hour', () => {
     for (const r of seed.restaurants.filter((x) => x.waitingEnabled)) {
-      for (const slot of hourSlots(r.hours)) {
+      for (const slot of hourSlots(r.waiting.hours ?? r.hours)) {
         for (let weekday = 0; weekday < 7; weekday += 1) {
           const found = seed.waitingStatistics.some((s) => s.restaurantId === r.id && s.weekday === weekday && s.timeSlot === slot);
           assert(found, `${r.id} missing ${weekday} ${slot}`);
@@ -216,6 +217,10 @@ try {
     const late = Date.parse('2026-10-23T09:10:00Z');  // 18:10 KST
     const today = bookingTimes(seed, restaurant('r1'), '2026-10-23', late);
     assert(!today.find((t) => t.time === '18:00').available && today.find((t) => t.time === '18:30').available, 'past times not bookable');
+    const r5 = bookingDates(seed, restaurant('r5'), noonSeoul);  // EVETT closes on Sunday and Monday
+    const [sat, sun, mon] = r5.slice(1, 4);
+    assert(sat.available && !sat.closed && sun.closed && !sun.available && mon.closed && dayStatus(STRINGS.booking, sun) === '휴무', 'closed weekdays are 휴무, not sold out');
+    assert(bookingTimes(seed, restaurant('r5'), sun.dateKey, noonSeoul).length === 0, 'closed day offers no times');
   });
 
   await check('save toggles per customer and coupon claims are idempotent', () => {

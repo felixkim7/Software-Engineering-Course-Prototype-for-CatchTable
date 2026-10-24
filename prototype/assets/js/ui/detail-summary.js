@@ -26,7 +26,9 @@ export function weeklyHoursList(weeklyHours, todayLabel) {
 
 export function photoCarousel(restaurant) {
   const photos = restaurant.photos.length ? restaurant.photos : [null];
-  return h('ul', { class: `detail-photos${photos.length === 1 ? ' detail-photos--single' : ''}`, 'aria-label': R.photosLabel },
+  // A 151px list thumbnail stays small instead of being stretched across the screen
+  const layout = restaurant.thumbnailOnly ? ' detail-photos--thumb' : photos.length === 1 ? ' detail-photos--single' : '';
+  return h('ul', { class: `detail-photos${layout}`, 'aria-label': R.photosLabel },
     photos.map((_, index) => h('li', {}, restaurantPhoto(restaurant, 'detail-photo', index))));
 }
 
@@ -34,6 +36,9 @@ function badgeChip(badge) {
   if (badge.kind === 'blueRibbon') {
     return h('span', { class: 'badge-chip badge-chip--ribbon' },
       h('img', { src: imageUrl('home/ribbon-double.png'), alt: '', width: 30, height: 18 }), badge.label);
+  }
+  if (badge.kind === 'michelin') {
+    return h('span', { class: 'badge-chip badge-chip--michelin' }, h('span', { 'aria-hidden': 'true' }, '✿'.repeat(badge.stars)), badge.label);
   }
   if (badge.kind === 'sushiroad') {
     return h('button', { class: 'badge-chip badge-chip--outline', type: 'button', onclick: notInDemo },
@@ -61,8 +66,17 @@ function infoRow(iconName, label, content, more, trailing) {
   return row;
 }
 
+/** Today's hours line: per-weekday overrides and regular closing days (EVETT); null when unknown. */
+function todayHoursText(hours, weekdayLabel) {
+  if (!hours) return null;
+  const weekday = STRINGS.weekdays.indexOf(weekdayLabel);
+  if (hours.closedWeekdays?.includes(weekday)) return R.closedToday(weekdayLabel);
+  const [open, close] = hours.byWeekday?.[weekday] ?? [hours.open, hours.close];
+  return R.todayHours(weekdayLabel, open, close);
+}
+
 export function summaryBlock(restaurant, { weekdayLabel, onLocation, onReviews }) {
-  const { open, close } = restaurant.hours;
+  const hoursText = todayHoursText(restaurant.hours, weekdayLabel);
   const [firstStation, ...otherStations] = restaurant.stations;
   return h('section', { class: 'detail-summary' },
     restaurant.badges.length > 0 && h('div', { class: 'badge-row' }, restaurant.badges.map(badgeChip)),
@@ -72,7 +86,7 @@ export function summaryBlock(restaurant, { weekdayLabel, onLocation, onReviews }
     h('p', { class: 'detail-summary__meta' },
       ratingStar(restaurant.rating),
       h('button', { class: 'detail-summary__reviews', type: 'button', onclick: onReviews },
-        R.reviewCount(formatCount(restaurant.reviewCount)), icon('chevronRight')),
+        restaurant.reviewCount === null ? R.reviewsLink : R.reviewCount(formatCount(restaurant.reviewCount)), icon('chevronRight')),
       h('span', {}, restaurant.district),
       h('span', {}, restaurant.cuisine)),
     h('p', { class: 'detail-summary__desc' }, restaurant.description),
@@ -80,8 +94,8 @@ export function summaryBlock(restaurant, { weekdayLabel, onLocation, onReviews }
       firstStation && infoRow('pin', R.transitLabel, [subwayBadges(firstStation.lines), R.distance(firstStation.name, firstStation.distanceM)],
         otherStations.length ? otherStations.map(stationLine) : null,
         h('button', { class: 'info-row__link', type: 'button', onclick: onLocation }, icon('map'), R.location)),
-      infoRow('won', R.priceLabel, restaurant.priceBand),
-      infoRow('clock', R.hoursLabel, R.todayHours(weekdayLabel, open, close),
+      restaurant.priceBand && infoRow('won', R.priceLabel, restaurant.priceBand),
+      hoursText && infoRow('clock', R.hoursLabel, hoursText,
         restaurant.weeklyHours && weeklyHoursList(restaurant.weeklyHours, weekdayLabel))),
     restaurant.tags.length > 0 && h('ul', { class: 'tag-chips' }, restaurant.tags.map((tag) => h('li', { class: 'tag-chip' }, tag))));
 }

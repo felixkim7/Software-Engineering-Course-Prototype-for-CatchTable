@@ -26,7 +26,7 @@ export function waitingStatistics(state, restaurant) {
     updatedAt: records[0]?.updatedAt ?? null,
     totalSamples: records.reduce((sum, record) => sum + record.sampleCount, 0),
     maxMinutes: Math.max(0, ...sufficient.map((record) => record.avgMinutes)),
-    slots: hourSlots(restaurant.hours),
+    slots: hourSlots(restaurant.waiting.hours ?? restaurant.hours),  // waiting hours win (24h 화포식당)
     /** { status: 'ready', avgMinutes, avgTeams, sampleCount } or { status: 'collecting', sampleCount } */
     cell(weekday, timeSlot) {
       const record = records.find((r) => r.weekday === weekday && r.timeSlot === timeSlot);

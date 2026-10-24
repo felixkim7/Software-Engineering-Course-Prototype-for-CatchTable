@@ -6,7 +6,7 @@
 import { STRINGS } from '../core/strings.js';
 import { addDays, formatClockTime, formatShortDate, seoulDateKey, weekdayOf } from '../core/format.js';
 import { getState } from '../core/store.js';
-import { bookingDates, bookingTimes } from '../services/booking.js';
+import { bookingDates, bookingTimes, dayStatus, isClosedDay } from '../services/booking.js';
 import { h } from './dom.js';
 import { icon } from './icons.js';
 import { notInDemo } from './toast.js';
@@ -42,15 +42,15 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm, onS
   const { maxPartySize, windowDays } = restaurant.booking;
   const lastKey = addDays(todayKey, windowDays - 1);
   const dates = bookingDates(state, restaurant, nowMs, windowDays);
-  const availability = new Map(dates.map((d) => [d.dateKey, d.available]));
+  const byDate = new Map(dates.map((d) => [d.dateKey, d]));
   const firstAvailable = dates.find((d) => d.available)?.dateKey ?? todayKey;
   let selection = null;  // { dateKey, party, time }
 
   const pickerLabel = h('span', { class: 'picker-bar__label' }, B.pickerPlaceholder);
-  const chips = dates.slice(0, CHIP_DAYS).map(({ dateKey, available }) => h('button', {
-    class: 'date-chip', type: 'button', 'aria-pressed': 'false', 'data-date': dateKey, 'data-available': String(available),
-    onclick: () => openPicker(dateKey),
-  }, h('span', { class: 'date-chip__day' }, dateLabel(dateKey, todayKey)), h('span', { class: 'date-chip__status' }, available ? B.available : B.soldOut)));
+  const chips = dates.slice(0, CHIP_DAYS).map((day) => h('button', {
+    class: 'date-chip', type: 'button', 'aria-pressed': 'false', 'data-date': day.dateKey, 'data-available': String(day.available),
+    onclick: () => openPicker(day.dateKey),
+  }, h('span', { class: 'date-chip__day' }, dateLabel(day.dateKey, todayKey)), h('span', { class: 'date-chip__status' }, dayStatus(B, day))));
 
   function apply(next) {
     selection = next;
@@ -109,8 +109,8 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm, onS
         ...Array.from({ length: 42 }, (_, index) => {
           const key = addDays(start, index);
           const inWindow = key >= todayKey && key <= lastKey;
-          const open = availability.get(key) === true;
-          const dayState = !inWindow ? null : open ? B.available : B.soldOut;
+          const open = byDate.get(key)?.available === true;
+          const dayState = inWindow && byDate.has(key) ? dayStatus(B, byDate.get(key)) : null;
           return h('button', {
             class: `calendar__day${inWindow && !open ? ' is-soldout' : ''}`, type: 'button', disabled: !inWindow, 'aria-pressed': String(key === dateKey),
             'aria-label': B.dayLabel(Number(key.slice(5, 7)), Number(key.slice(8)), weekdayName(key), dayState),
@@ -142,7 +142,7 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm, onS
         }, label, h('span', { class: 'time-chip__tag' }, joined ? C.joinedTag : C.soldOutTag));
       };
       // Chronological, sold-out times included (To-Be), so they sit where the customer looks
-      timeRow.replaceChildren(...(slots.length ? slots.map(chip) : [h('p', { class: 'sheet-empty' }, B.noTimes)]));
+      timeRow.replaceChildren(...(slots.length ? slots.map(chip) : [h('p', { class: 'sheet-empty' }, isClosedDay(restaurant, dateKey) ? B.closedDayTimes : B.noTimes)]));
       soldOutHint.hidden = !slots.some((slot) => slot.soldOut);
     }
 
@@ -155,7 +155,7 @@ export function bookingPanel(state, restaurant, nowMs, { heading, onConfirm, onS
       body: [
         h('div', { class: 'calendar' },
           h('div', { class: 'calendar__head' },
-            h('button', { class: 'calendar__today', type: 'button', onclick: () => { dateKey = availability.get(todayKey) ? todayKey : dateKey; month = todayKey.slice(0, 7); renderCalendar(); renderTimes(); } }, B.goToday),
+            h('button', { class: 'calendar__today', type: 'button', onclick: () => { dateKey = byDate.get(todayKey)?.available ? todayKey : dateKey; month = todayKey.slice(0, 7); renderCalendar(); renderTimes(); } }, B.goToday),
             h('div', { class: 'calendar__month' }, prev, title, next)),
           grid),
         partyRow,

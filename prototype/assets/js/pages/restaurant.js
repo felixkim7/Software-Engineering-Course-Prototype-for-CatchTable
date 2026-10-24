@@ -58,7 +58,7 @@ function renderDetail(state, restaurant) {
       button.setAttribute('aria-pressed', String(saved));
       button.querySelector('.icon').classList.toggle('is-filled', saved);
     });
-    saveCount.textContent = formatCount(restaurant.saveCount + (saved ? 1 : 0));
+    saveCount.textContent = restaurant.saveCount === null ? R.save : formatCount(restaurant.saveCount + (saved ? 1 : 0));
   }
   function onToggleSave() {
     const wasSaved = isSaved(getState(), restaurant.id);
@@ -140,8 +140,8 @@ function renderDetail(state, restaurant) {
     ['home', R.tabs.home],
     restaurant.news.length > 0 && ['news', R.tabs.news],
     ['menu', R.tabs.menu],
-    ['photos', `${R.tabs.photos} ${formatCapped(restaurant.photoCount)}`],
-    ['reviews', `${R.tabs.reviews} ${restaurant.reviewCount.toLocaleString('ko-KR')}`],
+    ['photos', restaurant.photoCount === null ? R.tabs.photos : `${R.tabs.photos} ${formatCapped(restaurant.photoCount)}`],
+    ['reviews', restaurant.reviewCount === null ? R.tabs.reviews : `${R.tabs.reviews} ${restaurant.reviewCount.toLocaleString('ko-KR')}`],
     restaurant.broadcasts.length > 0 && ['broadcasts', R.tabs.broadcasts],
     ['info', R.tabs.info],
   ].filter(Boolean);
